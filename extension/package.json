@@ -1,0 +1,22 @@
+{
+  "name": "sarf-extension",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "postinstall": "wxt prepare",
+    "build:wasm": "cd .. && wasm-pack build --target bundler --out-dir pkg",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "wxt": "latest",
+    "typescript": "latest",
+    "vite-plugin-wasm": "latest",
+    "vite-plugin-top-level-await": "latest"
+  }
+}

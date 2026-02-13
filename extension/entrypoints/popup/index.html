@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sarf</title>
+    <style>
+      body { font-family: system-ui; width: 320px; padding: 16px; }
+      input { direction: rtl; width: 100%; font-size: 16px; padding: 8px; margin-bottom: 8px; }
+      button { width: 100%; padding: 8px; cursor: pointer; }
+      #result { margin-top: 12px; white-space: pre-wrap; direction: rtl; }
+    </style>
+  </head>
+  <body>
+    <input id="word" type="text" placeholder="أدخل كلمة" />
+    <button id="analyze">حلّل</button>
+    <div id="result"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
