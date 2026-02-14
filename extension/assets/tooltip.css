@@ -1,0 +1,17 @@
+.sarf-tooltip {
+  position: fixed;
+  display: none;
+  background-color: #1a1a2e;
+  color: white;
+  direction: rtl;
+  z-index: 2147483647;
+  pointer-events: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 300px;
+}
+
+.sarf-tooltip.sarf-visible {
+  display: block;
+}
