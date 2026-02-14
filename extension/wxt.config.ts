@@ -18,5 +18,8 @@ export default defineConfig({
   },
   vite: () => ({
     plugins: [wasm(), topLevelAwait()],
+    build: {
+      target: "esnext",
+    },
   }),
 });

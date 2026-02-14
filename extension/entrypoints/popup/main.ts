@@ -1,4 +1,4 @@
-import init, { analyze_word } from "../../../pkg/sarf_core";
+import { init, analyze_word } from "../../../pkg/sarf_core";
 
 async function setup() {
   await init();
