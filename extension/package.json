@@ -11,12 +11,14 @@
     "zip:firefox": "wxt zip -b firefox",
     "postinstall": "wxt prepare",
     "build:wasm": "cd .. && wasm-pack build --target bundler --out-dir pkg",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "wxt": "latest",
     "typescript": "latest",
     "vite-plugin-wasm": "latest",
-    "vite-plugin-top-level-await": "latest"
+    "vite-plugin-top-level-await": "latest",
+    "vitest": "latest"
   }
 }
