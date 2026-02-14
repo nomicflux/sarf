@@ -20,7 +20,19 @@
   - `pnpm run typecheck` — clean
 
 ## Phase 3: Wire content script with mousemove handler
-- **Status**: PENDING
+- **Status**: COMPLETE
+- **Completed**: 2026-02-14
+- **Details**:
+  - Rewrote `extension/entrypoints/content.ts` to import helpers and CSS
+  - Implemented main() handler with ctx.addEventListener for automatic cleanup
+  - Created onMouseMove handler (8 lines) that:
+    - Calls getTextAtPoint(clientX, clientY)
+    - Extracts word using extractWordAtOffset()
+    - Checks containsArabic() before showing tooltip
+    - Shows/hides tooltip appropriately
+  - `pnpm test` — 10/10 pass
+  - `pnpm run typecheck` — clean
+  - `pnpm run build` — succeeds (CSS bundled to content-scripts/content.css)
 
 ## Agreements Made
 - Tokenization is simple: split by spaces and punctuation
