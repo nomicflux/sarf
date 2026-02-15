@@ -1,3 +1,5 @@
+import type { MorphAnalysis } from './types';
+
 export function createTooltipElement(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'sarf-tooltip';
@@ -9,9 +11,9 @@ export function showTooltip(
   el: HTMLDivElement,
   x: number,
   y: number,
-  text: string,
+  analysis: MorphAnalysis,
 ): void {
-  el.textContent = text;
+  el.textContent = analysis.original;
   el.style.left = `${x + 15}px`;
   el.style.top = `${y + 10}px`;
   el.classList.add('sarf-visible');

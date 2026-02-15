@@ -15,10 +15,11 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "wxt": "latest",
+    "@types/chrome": "^0.1.36",
     "typescript": "latest",
-    "vite-plugin-wasm": "latest",
     "vite-plugin-top-level-await": "latest",
-    "vitest": "latest"
+    "vite-plugin-wasm": "latest",
+    "vitest": "latest",
+    "wxt": "latest"
   }
 }
