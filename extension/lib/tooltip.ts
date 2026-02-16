@@ -15,7 +15,14 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   analysis.prefixes.forEach((p) => parts.push(`<span class="sarf-prefix">${p}</span>`));
   parts.push(`<span class="sarf-stem">${analysis.stem}</span>`);
   analysis.suffixes.forEach((s) => parts.push(`<span class="sarf-suffix">${s}</span>`));
-  return parts.join('<span class="sarf-separator"> + </span>');
+  let html = parts.join('<span class="sarf-separator"> + </span>');
+  if (analysis.root) {
+    html += `<div class="sarf-detail">Root: ${analysis.root}</div>`;
+  }
+  if (analysis.pattern) {
+    html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
+  }
+  return html;
 }
 
 export function showTooltip(

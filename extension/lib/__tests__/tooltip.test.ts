@@ -74,4 +74,20 @@ describe('renderAnalysis', () => {
     expect(html).toContain('كتاب');
     expect(html).not.toContain('sarf-separator');
   });
+
+  it('renders root when present', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      suffixes: [],
+      root: 'ك ت ب',
+      pattern: null,
+      definition: null,
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('sarf-detail');
+    expect(html).toContain('ك ت ب');
+  });
 });

@@ -2,7 +2,7 @@
 
 ## Phase 1: Message passing infrastructure — COMPLETE
 ## Phase 2: Prefix/suffix stripping in Rust + tooltip display — COMPLETE
-## Phase 3: Farasa API integration for root + pattern — PENDING
+## Phase 3: Farasa API integration for root + pattern — COMPLETE
 ## Phase 4: Hans Wehr dictionary — PENDING
 ## Phase 5: Tooltip polish + manifest permissions — PENDING
 
@@ -34,6 +34,14 @@
 - Created `tooltip.test.ts`: 4 tests for renderAnalysis
 - Updated `tooltip.css`: styles for prefix, stem, suffix, separator, particle
 - Rust tests: 14 pass, clippy clean. Extension tests: 14 pass, typecheck clean.
+
+## Phase 3 Details
+- Created `extension/lib/farasa.ts`: Farasa API client (callFarasa, farasaSegment, farasaStem)
+- Created `extension/lib/cache.ts`: LRU cache with TTL (500 entries, 30min TTL)
+- Background: cache check → Rust WASM → Farasa enrichment (3s timeout) → cache store
+- Tooltip: shows root/pattern detail lines when present
+- API key stored in chrome.storage.local, settable via devtools console
+- Tests: 22 total (10 arabic + 5 tooltip + 3 farasa + 4 cache)
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.
