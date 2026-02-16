@@ -11,6 +11,7 @@ struct AnalysisResult {
     original: String,
     prefixes: Vec<String>,
     stem: String,
+    verb_stem: Option<String>,
     suffixes: Vec<String>,
     root: Option<String>,
     pattern: Option<String>,
@@ -103,6 +104,17 @@ fn strip_suffixes(stem: &str) -> (String, Vec<String>) {
     (rem, suffixes)
 }
 
+fn strip_verb_prefix(word: &str) -> Option<(String, String)> {
+    let chars: Vec<char> = word.chars().collect();
+    if chars.len() >= 3 && matches!(chars[0], 'أ' | 'ت' | 'ي' | 'ن') {
+        let prefix = chars[0].to_string();
+        let rest: String = chars[1..].iter().collect();
+        Some((prefix, rest))
+    } else {
+        None
+    }
+}
+
 #[wasm_bindgen]
 pub fn analyze_word(word: &str) -> String {
     let result = if is_particle(word) {
@@ -110,6 +122,7 @@ pub fn analyze_word(word: &str) -> String {
             original: word.to_string(),
             prefixes: vec![],
             stem: word.to_string(),
+            verb_stem: None,
             suffixes: vec![],
             root: None,
             pattern: None,
@@ -118,10 +131,12 @@ pub fn analyze_word(word: &str) -> String {
     } else {
         let (prefixes, rem) = strip_prefixes(word);
         let (stem, suffixes) = strip_suffixes(&rem);
+        let verb_stem = strip_verb_prefix(&stem).map(|(_, rest)| rest);
         AnalysisResult {
             original: word.to_string(),
             prefixes,
             stem,
+            verb_stem,
             suffixes,
             root: None,
             pattern: None,
@@ -231,5 +246,29 @@ mod tests {
         let result: AnalysisResult = serde_json::from_str(&json).unwrap();
         assert!(result.is_particle);
         assert_eq!(result.stem, "في");
+    }
+
+    #[test]
+    fn test_strip_verb_prefix_ta() {
+        let result = strip_verb_prefix("تلقب");
+        assert_eq!(result, Some(("ت".to_string(), "لقب".to_string())));
+    }
+
+    #[test]
+    fn test_strip_verb_prefix_ya() {
+        let result = strip_verb_prefix("يكتب");
+        assert_eq!(result, Some(("ي".to_string(), "كتب".to_string())));
+    }
+
+    #[test]
+    fn test_strip_verb_prefix_none() {
+        assert!(strip_verb_prefix("كتب").is_none());
+    }
+
+    #[test]
+    fn test_analyze_word_verb_stem() {
+        let json = analyze_word("تلقب");
+        let result: AnalysisResult = serde_json::from_str(&json).unwrap();
+        assert_eq!(result.verb_stem, Some("لقب".to_string()));
     }
 }

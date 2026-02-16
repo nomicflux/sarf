@@ -44,3 +44,23 @@ export function lookupRootWord(index: DictIndex, word: string): string | null {
   const root = findRootEntry(index, entry);
   return root?.word ?? null;
 }
+
+export function lookupWithFallback(
+  index: DictIndex,
+  stem: string,
+  verbStem: string | null,
+): { definition: string | null; rootWord: string | null } {
+  const entry = lookupWord(index, stem);
+  if (entry) {
+    const root = findRootEntry(index, entry);
+    return { definition: entry.definition, rootWord: root?.word ?? null };
+  }
+  if (verbStem) {
+    const fallback = lookupWord(index, verbStem);
+    if (fallback) {
+      const root = findRootEntry(index, fallback);
+      return { definition: fallback.definition, rootWord: root?.word ?? null };
+    }
+  }
+  return { definition: null, rootWord: null };
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord } from '../dictionary';
+import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback } from '../dictionary';
 import type { DictEntry } from '../dictionary';
 
 const sampleEntries: DictEntry[] = [
@@ -7,6 +7,7 @@ const sampleEntries: DictEntry[] = [
   { id: 101, word: 'كتاب', definition: 'kitāb book; writing', isRoot: false, parentId: 100 },
   { id: 102, word: 'مكتبة', definition: 'maktaba library', isRoot: false, parentId: 100 },
   { id: 200, word: 'درس', definition: 'darasa to study', isRoot: true, parentId: 200 },
+  { id: 300, word: 'لقب', definition: 'laqab nickname; title', isRoot: true, parentId: 300 },
 ];
 
 describe('dictionary', () => {
@@ -43,5 +44,27 @@ describe('dictionary', () => {
 
   it('lookupRootWord returns null for unknown', () => {
     expect(lookupRootWord(index, 'unknown')).toBeNull();
+  });
+});
+
+describe('lookupWithFallback', () => {
+  const index = buildIndex(sampleEntries);
+
+  it('returns stem match when found', () => {
+    const result = lookupWithFallback(index, 'كتاب', null);
+    expect(result.definition).toBe('kitāb book; writing');
+    expect(result.rootWord).toBe('كتب');
+  });
+
+  it('falls back to verbStem when stem not found', () => {
+    const result = lookupWithFallback(index, 'تلقب', 'لقب');
+    expect(result.definition).toBe('laqab nickname; title');
+    expect(result.rootWord).toBe('لقب');
+  });
+
+  it('returns nulls when neither found', () => {
+    const result = lookupWithFallback(index, 'xyz', 'abc');
+    expect(result.definition).toBeNull();
+    expect(result.rootWord).toBeNull();
   });
 });

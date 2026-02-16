@@ -2,7 +2,7 @@ import { init, analyze_word } from '../../pkg/sarf_core';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 import { farasaStem } from '../lib/farasa';
 import { createCache } from '../lib/cache';
-import { buildIndex, lookupDefinition, lookupRootWord } from '../lib/dictionary';
+import { buildIndex, lookupWithFallback } from '../lib/dictionary';
 import type { DictEntry, DictIndex } from '../lib/dictionary';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
@@ -57,6 +57,7 @@ function parseAnalysis(json: string): MorphAnalysis {
     original: raw.original,
     prefixes: raw.prefixes,
     stem: raw.stem,
+    verbStem: raw.verb_stem ?? null,
     suffixes: raw.suffixes,
     root: raw.root ?? null,
     pattern: raw.pattern ?? null,
@@ -67,8 +68,8 @@ function parseAnalysis(json: string): MorphAnalysis {
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
   const dict = await loadDictionary();
-  const definition = lookupDefinition(dict, analysis.stem);
-  const root = analysis.root ?? lookupRootWord(dict, analysis.stem);
+  const { definition, rootWord } = lookupWithFallback(dict, analysis.stem, analysis.verbStem);
+  const root = analysis.root ?? rootWord;
   return { ...analysis, definition, root };
 }
 

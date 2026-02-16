@@ -2,6 +2,7 @@ export interface MorphAnalysis {
   original: string;
   prefixes: string[];
   stem: string;
+  verbStem: string | null;
   suffixes: string[];
   root: string | null;
   pattern: string | null;

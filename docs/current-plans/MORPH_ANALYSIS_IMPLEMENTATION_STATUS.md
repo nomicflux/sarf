@@ -5,6 +5,7 @@
 ## Phase 3: Farasa API integration for root + pattern — COMPLETE
 ## Phase 4: Hans Wehr dictionary — COMPLETE
 ## Phase 5: Tooltip polish + manifest permissions — COMPLETE
+## Phase 6: Verb prefix stripping + dictionary fallback — COMPLETE
 
 ## Phase 1 Details
 - Created `extension/lib/types.ts` with `MorphAnalysis`, `AnalyzeRequest`, `AnalyzeResponse`
@@ -59,5 +60,15 @@
 - Responsive tooltip max-width: `min(300px, 90vw)`
 - Tests: 35 total pass (3 debounce + 2 clampPosition new)
 
+## Phase 6 Details
+- Added `strip_verb_prefix` to `src/lib.rs`: strips أ/ت/ي/ن verb prefixes from stems ≥3 chars
+- Added `verb_stem: Option<String>` to `AnalysisResult` — carries the verb-prefix-stripped stem
+- Added `lookupWithFallback` to `extension/lib/dictionary.ts`: tries stem first, then verbStem fallback
+- Updated `MorphAnalysis` type with `verbStem: string | null`
+- Updated `parseAnalysis` to map `verb_stem` → `verbStem`
+- Updated `enrichWithDictionary` to use `lookupWithFallback` instead of separate lookup calls
+- Rust tests: 18 pass (4 new), clippy clean. Extension tests: 38 pass (3 new dictionary fallback), typecheck clean.
+
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.
+- `تلقب` showed bare word because ت (verb prefix) was not stripped and `تلقب` is not a dictionary headword. Fixed by adding verb prefix stripping + dictionary fallback lookup.
