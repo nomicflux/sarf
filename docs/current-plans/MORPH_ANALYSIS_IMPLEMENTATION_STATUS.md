@@ -3,7 +3,7 @@
 ## Phase 1: Message passing infrastructure — COMPLETE
 ## Phase 2: Prefix/suffix stripping in Rust + tooltip display — COMPLETE
 ## Phase 3: Farasa API integration for root + pattern — COMPLETE
-## Phase 4: Hans Wehr dictionary — PENDING
+## Phase 4: Hans Wehr dictionary — COMPLETE
 ## Phase 5: Tooltip polish + manifest permissions — PENDING
 
 ## Phase 1 Details
@@ -42,6 +42,15 @@
 - Tooltip: shows root/pattern detail lines when present
 - API key stored in chrome.storage.local, settable via devtools console
 - Tests: 22 total (10 arabic + 5 tooltip + 3 farasa + 4 cache)
+
+## Phase 4 Details
+- Generated `extension/public/hanswehr.json` from SQLite (24,799 entries, 5.4MB)
+- Created `extension/lib/dictionary.ts`: DictIndex with byWord + byId maps, pure lookup functions
+- Created `extension/lib/__tests__/dictionary.test.ts`: 7 tests with sample data
+- Background loads dictionary at startup, enriches analysis with definition + root
+- Tooltip shows definition in LTR italic text
+- Priority: Farasa root > dictionary root; dictionary definition always
+- Tests: 30 total pass, typecheck clean, build succeeds
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

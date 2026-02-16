@@ -90,4 +90,20 @@ describe('renderAnalysis', () => {
     expect(html).toContain('sarf-detail');
     expect(html).toContain('ك ت ب');
   });
+
+  it('renders definition when present', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      suffixes: [],
+      root: 'ك ت ب',
+      pattern: null,
+      definition: 'book; writing',
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('sarf-definition');
+    expect(html).toContain('book; writing');
+  });
 });

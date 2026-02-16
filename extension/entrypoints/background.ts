@@ -2,13 +2,26 @@ import { init, analyze_word } from '../../pkg/sarf_core';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 import { farasaStem } from '../lib/farasa';
 import { createCache } from '../lib/cache';
+import { buildIndex, lookupDefinition, lookupRootWord } from '../lib/dictionary';
+import type { DictEntry, DictIndex } from '../lib/dictionary';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
+let dictIndex: DictIndex | null = null;
+
+async function loadDictionary(): Promise<DictIndex> {
+  if (dictIndex) return dictIndex;
+  const url = chrome.runtime.getURL('hanswehr.json');
+  const res = await fetch(url);
+  const entries: DictEntry[] = await res.json();
+  dictIndex = buildIndex(entries);
+  return dictIndex;
+}
 
 export default defineBackground({
   type: 'module',
   main() {
     init();
+    loadDictionary();
 
     chrome.runtime.onMessage.addListener(
       (message: unknown, _sender, sendResponse) => {
@@ -33,8 +46,9 @@ async function handleAnalyze(
 
   const result = parseAnalysis(analyze_word(word));
   const enriched = await enrichWithFarasa(result);
-  cache.set(word, enriched);
-  sendResponse(enriched);
+  const withDict = await enrichWithDictionary(enriched);
+  cache.set(word, withDict);
+  sendResponse(withDict);
 }
 
 function parseAnalysis(json: string): MorphAnalysis {
@@ -49,6 +63,13 @@ function parseAnalysis(json: string): MorphAnalysis {
     definition: null,
     isParticle: raw.is_particle,
   };
+}
+
+async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
+  const dict = await loadDictionary();
+  const definition = lookupDefinition(dict, analysis.stem);
+  const root = analysis.root ?? lookupRootWord(dict, analysis.stem);
+  return { ...analysis, definition, root };
 }
 
 async function enrichWithFarasa(analysis: MorphAnalysis): Promise<MorphAnalysis> {

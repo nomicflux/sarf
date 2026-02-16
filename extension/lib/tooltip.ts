@@ -22,6 +22,9 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }
+  if (analysis.definition) {
+    html += `<div class="sarf-definition">${analysis.definition}</div>`;
+  }
   return html;
 }
 

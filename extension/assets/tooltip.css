@@ -48,3 +48,15 @@
   color: #a0a0a0;
   margin-top: 4px;
 }
+
+.sarf-definition {
+  font-style: italic;
+  color: #c0c0c0;
+  margin-top: 4px;
+  font-size: 12px;
+  max-height: 2.8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+  text-align: left;
+}
