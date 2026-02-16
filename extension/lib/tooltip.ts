@@ -20,6 +20,16 @@ export function createTooltipElement(): HTMLDivElement {
   return el;
 }
 
+function renderRoot(root: string | null): string {
+  if (root) return `<div class="sarf-detail">Root: ${root}</div>`;
+  return '<div class="sarf-detail sarf-missing">Root: —</div>';
+}
+
+function renderDefinition(definition: string | null): string {
+  if (definition) return `<div class="sarf-definition">${definition}</div>`;
+  return '<div class="sarf-definition sarf-missing">No definition found</div>';
+}
+
 export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.isParticle) {
     return `<span class="sarf-particle">حرف</span> <span class="sarf-stem">${analysis.original}</span>`;
@@ -29,15 +39,11 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   parts.push(`<span class="sarf-stem">${analysis.stem}</span>`);
   analysis.suffixes.forEach((s) => parts.push(`<span class="sarf-suffix">${s}</span>`));
   let html = parts.join('<span class="sarf-separator"> + </span>');
-  if (analysis.root) {
-    html += `<div class="sarf-detail">Root: ${analysis.root}</div>`;
-  }
+  html += renderRoot(analysis.root);
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }
-  if (analysis.definition) {
-    html += `<div class="sarf-definition">${analysis.definition}</div>`;
-  }
+  html += renderDefinition(analysis.definition);
   return html;
 }
 

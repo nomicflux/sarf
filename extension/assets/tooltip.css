@@ -60,3 +60,7 @@
   direction: ltr;
   text-align: left;
 }
+
+.sarf-missing {
+  opacity: 0.5;
+}

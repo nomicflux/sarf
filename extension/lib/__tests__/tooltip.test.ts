@@ -112,6 +112,58 @@ describe('renderAnalysis', () => {
     expect(html).toContain('sarf-definition');
     expect(html).toContain('book; writing');
   });
+
+  it('shows missing root indicator for non-particle', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      verbStem: null,
+      suffixes: [],
+      root: null,
+      pattern: null,
+      definition: null,
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('sarf-missing');
+    expect(html).toContain('Root: —');
+  });
+
+  it('shows missing definition indicator for non-particle', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      verbStem: null,
+      suffixes: [],
+      root: null,
+      pattern: null,
+      definition: null,
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('No definition found');
+    expect(html).toContain('sarf-missing');
+  });
+
+  it('does not show missing indicators for particle', () => {
+    const analysis: MorphAnalysis = {
+      original: 'في',
+      prefixes: [],
+      stem: 'في',
+      verbStem: null,
+      suffixes: [],
+      root: null,
+      pattern: null,
+      definition: null,
+      isParticle: true,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).not.toContain('sarf-missing');
+    expect(html).not.toContain('Root: —');
+    expect(html).not.toContain('No definition found');
+  });
 });
 
 describe('clampPosition', () => {

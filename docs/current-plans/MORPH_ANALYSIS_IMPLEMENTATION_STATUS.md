@@ -6,6 +6,7 @@
 ## Phase 4: Hans Wehr dictionary — COMPLETE
 ## Phase 5: Tooltip polish + manifest permissions — COMPLETE
 ## Phase 6: Verb prefix stripping + dictionary fallback — COMPLETE
+## Phase 7: Transparent failure display in tooltip — COMPLETE
 
 ## Phase 1 Details
 - Created `extension/lib/types.ts` with `MorphAnalysis`, `AnalyzeRequest`, `AnalyzeResponse`
@@ -68,6 +69,18 @@
 - Updated `parseAnalysis` to map `verb_stem` → `verbStem`
 - Updated `enrichWithDictionary` to use `lookupWithFallback` instead of separate lookup calls
 - Rust tests: 18 pass (4 new), clippy clean. Extension tests: 38 pass (3 new dictionary fallback), typecheck clean.
+
+## Phase 7 Details
+- Added `renderRoot` and `renderDefinition` helpers to `tooltip.ts`
+- Non-particle words now always show root and definition lines
+- Missing root shows "Root: —" with `sarf-missing` class (opacity: 0.5)
+- Missing definition shows "No definition found" with `sarf-missing` class
+- Particles unchanged — no missing indicators shown
+- Added `.sarf-missing { opacity: 0.5; }` to `tooltip.css`
+- Tests: 41 pass (3 new tooltip tests for missing states), typecheck clean
+
+## Agreements Made (Phase 6-7)
+- 2026-02-14: User: "Failed calls and lookups should still show the rest of the information, and make the failures clear."
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.
