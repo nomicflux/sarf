@@ -1,5 +1,18 @@
 import type { MorphAnalysis } from './types';
 
+export function clampPosition(
+  x: number,
+  y: number,
+  viewW: number,
+  viewH: number,
+  elW: number,
+  elH: number,
+): { x: number; y: number } {
+  const cx = Math.min(x + 15, viewW - elW - 8);
+  const cy = Math.min(y + 10, viewH - elH - 8);
+  return { x: Math.max(8, cx), y: Math.max(8, cy) };
+}
+
 export function createTooltipElement(): HTMLDivElement {
   const el = document.createElement('div');
   el.className = 'sarf-tooltip';
@@ -35,9 +48,10 @@ export function showTooltip(
   analysis: MorphAnalysis,
 ): void {
   el.innerHTML = renderAnalysis(analysis);
-  el.style.left = `${x + 15}px`;
-  el.style.top = `${y + 10}px`;
   el.classList.add('sarf-visible');
+  const pos = clampPosition(x, y, window.innerWidth, window.innerHeight, el.offsetWidth, el.offsetHeight);
+  el.style.left = `${pos.x}px`;
+  el.style.top = `${pos.y}px`;
 }
 
 export function hideTooltip(el: HTMLDivElement): void {

@@ -2,6 +2,7 @@ import '../assets/tooltip.css';
 import { containsArabic, extractWordAtOffset } from '../lib/arabic';
 import { createTooltipElement, showTooltip, hideTooltip } from '../lib/tooltip';
 import { getTextAtPoint } from '../lib/hit-test';
+import { debounce } from '../lib/debounce';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 
 export default defineContentScript({
@@ -10,7 +11,7 @@ export default defineContentScript({
     const tooltip = createTooltipElement();
     let lastWord: string | null = null;
 
-    const onMouseMove = (event: MouseEvent) => {
+    const onMouseMove = debounce((event: MouseEvent) => {
       const result = getTextAtPoint(event.clientX, event.clientY);
       if (!result) return hideTooltip(tooltip);
 
@@ -21,7 +22,7 @@ export default defineContentScript({
       lastWord = word;
 
       analyzeAndShow(word, event.clientX, event.clientY);
-    };
+    }, 100);
 
     function analyzeAndShow(word: string, x: number, y: number): void {
       const message: AnalyzeRequest = { type: 'analyze', word };

@@ -9,7 +9,7 @@
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
-  max-width: 300px;
+  max-width: min(300px, 90vw);
 }
 
 .sarf-tooltip.sarf-visible {

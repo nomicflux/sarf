@@ -4,7 +4,7 @@
 ## Phase 2: Prefix/suffix stripping in Rust + tooltip display — COMPLETE
 ## Phase 3: Farasa API integration for root + pattern — COMPLETE
 ## Phase 4: Hans Wehr dictionary — COMPLETE
-## Phase 5: Tooltip polish + manifest permissions — PENDING
+## Phase 5: Tooltip polish + manifest permissions — COMPLETE
 
 ## Phase 1 Details
 - Created `extension/lib/types.ts` with `MorphAnalysis`, `AnalyzeRequest`, `AnalyzeResponse`
@@ -51,6 +51,13 @@
 - Tooltip shows definition in LTR italic text
 - Priority: Farasa root > dictionary root; dictionary definition always
 - Tests: 30 total pass, typecheck clean, build succeeds
+
+## Phase 5 Details
+- Added `"storage"` permission to manifest (for Farasa API key)
+- Created `extension/lib/debounce.ts`: pure debounce helper (100ms on mousemove)
+- Added `clampPosition` to tooltip.ts: keeps tooltip within viewport bounds
+- Responsive tooltip max-width: `min(300px, 90vw)`
+- Tests: 35 total pass (3 debounce + 2 clampPosition new)
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

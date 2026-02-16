@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderAnalysis } from '../tooltip';
+import { renderAnalysis, clampPosition } from '../tooltip';
 import type { MorphAnalysis } from '../types';
 
 describe('renderAnalysis', () => {
@@ -105,5 +105,19 @@ describe('renderAnalysis', () => {
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-definition');
     expect(html).toContain('book; writing');
+  });
+});
+
+describe('clampPosition', () => {
+  it('keeps tooltip within viewport', () => {
+    const pos = clampPosition(900, 700, 1024, 768, 200, 100);
+    expect(pos.x).toBeLessThanOrEqual(1024 - 200 - 8);
+    expect(pos.y).toBeLessThanOrEqual(768 - 100 - 8);
+  });
+
+  it('does not go below minimum', () => {
+    const pos = clampPosition(-100, -100, 1024, 768, 200, 100);
+    expect(pos.x).toBeGreaterThanOrEqual(8);
+    expect(pos.y).toBeGreaterThanOrEqual(8);
   });
 });
