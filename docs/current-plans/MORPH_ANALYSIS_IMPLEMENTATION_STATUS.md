@@ -1,7 +1,7 @@
 # Morphological Analysis Implementation Status
 
 ## Phase 1: Message passing infrastructure — COMPLETE
-## Phase 2: Prefix/suffix stripping in Rust + tooltip display — PENDING
+## Phase 2: Prefix/suffix stripping in Rust + tooltip display — COMPLETE
 ## Phase 3: Farasa API integration for root + pattern — PENDING
 ## Phase 4: Hans Wehr dictionary — PENDING
 ## Phase 5: Tooltip polish + manifest permissions — PENDING
@@ -25,6 +25,15 @@
 - Pure TypeScript analysis (rejected in favor of Rust/WASM via background messaging)
 - Algorithmic-only approach (rejected in favor of hybrid API + embedded data)
 - Simple parts-only display (rejected in favor of full breakdown + translation)
+
+## Phase 2 Details
+- Added serde/serde_json to Cargo.toml
+- Rewrote `src/lib.rs`: `is_particle`, `strip_prefixes`, `strip_suffixes`, `analyze_word` returning JSON
+- Updated `background.ts`: parses JSON from WASM, maps snake_case→camelCase
+- Updated `tooltip.ts`: `renderAnalysis()` returns structured HTML with prefix/stem/suffix spans
+- Created `tooltip.test.ts`: 4 tests for renderAnalysis
+- Updated `tooltip.css`: styles for prefix, stem, suffix, separator, particle
+- Rust tests: 14 pass, clippy clean. Extension tests: 14 pass, typecheck clean.
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

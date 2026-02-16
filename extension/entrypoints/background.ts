@@ -24,19 +24,20 @@ function handleAnalyze(
   word: string,
   sendResponse: (response: MorphAnalysis) => void,
 ): void {
-  analyze_word(word);
-  sendResponse(createStubAnalysis(word));
+  const json = analyze_word(word);
+  sendResponse(parseAnalysis(json));
 }
 
-function createStubAnalysis(word: string): MorphAnalysis {
+function parseAnalysis(json: string): MorphAnalysis {
+  const raw = JSON.parse(json);
   return {
-    original: word,
-    stem: word,
-    prefixes: [],
-    suffixes: [],
-    root: null,
-    pattern: null,
+    original: raw.original,
+    prefixes: raw.prefixes,
+    stem: raw.stem,
+    suffixes: raw.suffixes,
+    root: raw.root ?? null,
+    pattern: raw.pattern ?? null,
     definition: null,
-    isParticle: false,
+    isParticle: raw.is_particle,
   };
 }

@@ -15,3 +15,30 @@
 .sarf-tooltip.sarf-visible {
   display: block;
 }
+
+.sarf-prefix {
+  color: #7eb8da;
+  font-size: 13px;
+}
+
+.sarf-stem {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.sarf-suffix {
+  color: #8bc99a;
+  font-size: 13px;
+}
+
+.sarf-separator {
+  color: #666;
+  margin: 0 2px;
+  font-size: 12px;
+}
+
+.sarf-particle {
+  color: #b0b0b0;
+  font-size: 12px;
+  margin-left: 6px;
+}
