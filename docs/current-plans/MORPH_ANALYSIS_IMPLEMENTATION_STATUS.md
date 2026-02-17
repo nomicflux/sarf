@@ -100,6 +100,7 @@
 - Replacing Farasa entirely (user chose fallback, not replacement)
 
 ## Phase 9: AlKhalil MorphoSys Integration — COMPLETE
+## Phase 10: Display Lemma in Tooltip — COMPLETE
 - Added MorphoSys as primary morphological analysis pipeline
 - POST `http://oujda-nlp-team.net:8081/api/alkhalil` with `textinput={word}` — returns full XML morphological analysis
 - New pure functions: `extractMorpheme`, `parseProcField`, `parseEncField`, `parseMorphoSysXml` in alkhalil.ts
@@ -119,6 +120,11 @@
 - Farasa segmentation (requires API key — user rejected)
 - Fixing heuristics only (user wants real morphological understanding)
 - Web API-only search (user corrected: solutions include client-side, not just web APIs)
+
+## Phase 10 Details
+- Added `renderLemma` helper to tooltip.ts — displays lemma between morpheme breakdown and root
+- Lemma only shown when present (MorphoSys path sets it, WASM fallback has null)
+- Tests: 64 total pass, typecheck clean
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

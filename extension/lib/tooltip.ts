@@ -30,6 +30,11 @@ function renderDefinition(definition: string | null): string {
   return '<div class="sarf-definition sarf-missing">No definition found</div>';
 }
 
+function renderLemma(lemma: string | null): string {
+  if (!lemma) return '';
+  return `<div class="sarf-detail">Lemma: ${lemma}</div>`;
+}
+
 export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.isParticle) {
     return `<span class="sarf-particle">حرف</span> <span class="sarf-stem">${analysis.original}</span>`;
@@ -39,6 +44,7 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   parts.push(`<span class="sarf-stem">${analysis.stem}</span>`);
   analysis.suffixes.forEach((s) => parts.push(`<span class="sarf-suffix">${s}</span>`));
   let html = parts.join('<span class="sarf-separator"> + </span>');
+  html += renderLemma(analysis.lemma);
   html += renderRoot(analysis.root);
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;

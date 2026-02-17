@@ -173,6 +173,24 @@ describe('renderAnalysis', () => {
     expect(html).not.toContain('Root: —');
     expect(html).not.toContain('No definition found');
   });
+
+  it('renders lemma when present', () => {
+    const analysis: MorphAnalysis = {
+      original: 'الإدارية',
+      prefixes: ['ال'],
+      stem: 'إداري',
+      verbStem: null,
+      suffixes: ['ة'],
+      root: 'دور',
+      pattern: null,
+      definition: 'administrative',
+      lemma: 'إداري',
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('Lemma: إداري');
+    expect(html).toContain('sarf-detail');
+  });
 });
 
 describe('clampPosition', () => {
