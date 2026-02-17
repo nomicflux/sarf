@@ -11,11 +11,18 @@ let dictIndex: DictIndex | null = null;
 
 async function loadDictionary(): Promise<DictIndex> {
   if (dictIndex) return dictIndex;
-  const url = chrome.runtime.getURL('hanswehr.json');
-  const res = await fetch(url);
-  const entries: DictEntry[] = await res.json();
-  dictIndex = buildIndex(entries);
+  const [hansWehr, wiktionary] = await Promise.all([
+    loadJsonFile('hanswehr.json'),
+    loadJsonFile('wiktionary.json'),
+  ]);
+  dictIndex = buildIndex([...hansWehr, ...wiktionary]);
   return dictIndex;
+}
+
+async function loadJsonFile(filename: string): Promise<DictEntry[]> {
+  const url = chrome.runtime.getURL(filename);
+  const res = await fetch(url);
+  return res.json();
 }
 
 export default defineBackground({

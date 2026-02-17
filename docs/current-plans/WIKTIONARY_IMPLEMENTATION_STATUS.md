@@ -12,6 +12,10 @@
 - ID range: 24931–49813 (starts after Hans Wehr max ID 24930)
 - All 83 tests pass
 
-## Phase 2: Load Wiktionary Dictionary in Extension — PENDING
+## Phase 2: Load Wiktionary Dictionary in Extension — COMPLETE
+- Modified `extension/entrypoints/background.ts` — loads both hanswehr.json and wiktionary.json via Promise.all
+- Extracted `loadJsonFile` helper function
+- Hans Wehr entries first in merged array → preferred in lookups
+- All 83 tests pass, typecheck clean
 
 ## Phase 3: Add Source Label to Definitions — PENDING
