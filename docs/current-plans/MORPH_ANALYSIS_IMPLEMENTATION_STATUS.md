@@ -7,6 +7,7 @@
 ## Phase 5: Tooltip polish + manifest permissions — COMPLETE
 ## Phase 6: Verb prefix stripping + dictionary fallback — COMPLETE
 ## Phase 7: Transparent failure display in tooltip — COMPLETE
+## Phase 8: AlKhalil Root Extractor as Farasa fallback — COMPLETE
 
 ## Phase 1 Details
 - Created `extension/lib/types.ts` with `MorphAnalysis`, `AnalyzeRequest`, `AnalyzeResponse`
@@ -81,6 +82,22 @@
 
 ## Agreements Made (Phase 6-7)
 - 2026-02-14: User: "Failed calls and lookups should still show the rest of the information, and make the failures clear."
+
+## Phase 8 Details
+- Created `extension/lib/alkhalil.ts`: AlKhalil API client (alkhalilRoot, parseAlkhalilResponse)
+- API: GET `http://oujda-nlp-team.net:8080/api/ApiRacine/{word}` — returns `{{word:root}}` format
+- Created `extension/lib/timeout.ts`: extracted shared `withTimeout` utility from background.ts
+- Integrated into pipeline: WASM → Farasa (if key) → AlKhalil (no key needed) → Dictionary
+- `enrichWithAlkhalil` short-circuits if root already found or word is particle
+- 3-second timeout, silent failure on error (falls through to dictionary)
+- HTTP note: AlKhalil only serves HTTP; Chrome extension background scripts are not subject to mixed-content restrictions
+- Tests: 48 total pass (5 alkhalil + 2 timeout new), typecheck clean
+
+## Agreements Made (Phase 8)
+- 2026-02-16: User chose "AlKhalil as fallback" — use when Farasa is unavailable or fails
+
+## Explicitly Rejected (Phase 8)
+- Replacing Farasa entirely (user chose fallback, not replacement)
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

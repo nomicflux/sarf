@@ -1,6 +1,8 @@
 import { init, analyze_word } from '../../pkg/sarf_core';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 import { farasaStem } from '../lib/farasa';
+import { alkhalilRoot } from '../lib/alkhalil';
+import { withTimeout } from '../lib/timeout';
 import { createCache } from '../lib/cache';
 import { buildIndex, lookupWithFallback } from '../lib/dictionary';
 import type { DictEntry, DictIndex } from '../lib/dictionary';
@@ -46,7 +48,8 @@ async function handleAnalyze(
 
   const result = parseAnalysis(analyze_word(word));
   const enriched = await enrichWithFarasa(result);
-  const withDict = await enrichWithDictionary(enriched);
+  const withAlkhalil = await enrichWithAlkhalil(enriched);
+  const withDict = await enrichWithDictionary(withAlkhalil);
   cache.set(word, withDict);
   sendResponse(withDict);
 }
@@ -95,9 +98,16 @@ async function applyFarasaRoot(analysis: MorphAnalysis, apiKey: string): Promise
   }
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
-  ]);
+async function enrichWithAlkhalil(analysis: MorphAnalysis): Promise<MorphAnalysis> {
+  if (analysis.root || analysis.isParticle) return analysis;
+  return applyAlkhalilRoot(analysis);
+}
+
+async function applyAlkhalilRoot(analysis: MorphAnalysis): Promise<MorphAnalysis> {
+  try {
+    const root = await withTimeout(alkhalilRoot(analysis.stem), 3000);
+    return { ...analysis, root: root || analysis.root };
+  } catch {
+    return analysis;
+  }
 }
