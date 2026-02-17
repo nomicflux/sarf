@@ -10,7 +10,6 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "postinstall": "wxt prepare",
-    "build:wasm": "cd .. && wasm-pack build --target bundler --out-dir pkg",
     "build:wiktionary": "npx tsx ../scripts/build-wiktionary.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
