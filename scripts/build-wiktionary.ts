@@ -9,6 +9,7 @@ interface DictEntry {
   definition: string;
   isRoot: boolean;
   parentId: number;
+  source: string;
 }
 
 interface WiktionaryEntry {
@@ -63,6 +64,7 @@ export function createDictEntries(deduplicated: Map<string, string>): DictEntry[
       definition,
       isRoot: false,
       parentId: id,
+      source: 'wk',
     });
     id++;
   }

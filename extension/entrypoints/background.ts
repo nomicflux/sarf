@@ -12,17 +12,18 @@ let dictIndex: DictIndex | null = null;
 async function loadDictionary(): Promise<DictIndex> {
   if (dictIndex) return dictIndex;
   const [hansWehr, wiktionary] = await Promise.all([
-    loadJsonFile('hanswehr.json'),
-    loadJsonFile('wiktionary.json'),
+    loadJsonFile('hanswehr.json', 'hw'),
+    loadJsonFile('wiktionary.json', 'wk'),
   ]);
   dictIndex = buildIndex([...hansWehr, ...wiktionary]);
   return dictIndex;
 }
 
-async function loadJsonFile(filename: string): Promise<DictEntry[]> {
+async function loadJsonFile(filename: string, source: string): Promise<DictEntry[]> {
   const url = chrome.runtime.getURL(filename);
   const res = await fetch(url);
-  return res.json();
+  const entries: DictEntry[] = await res.json();
+  return entries.map(e => ({ ...e, source }));
 }
 
 export default defineBackground({
@@ -74,7 +75,7 @@ async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnaly
   const dict = await loadDictionary();
   const result = lookupAnalysis(dict, analysis);
   const root = analysis.root ?? result.rootWord;
-  return { ...analysis, definition: result.definition, root };
+  return { ...analysis, definition: result.definition, root, source: result.source };
 }
 
 function morphoSysToAnalysis(
@@ -84,7 +85,7 @@ function morphoSysToAnalysis(
     return {
       original, prefixes: [], stem: original, verbStem: null,
       suffixes: [], root: null, pattern: null, definition: null,
-      lemmas: [], pos: null, isParticle: false, error,
+      lemmas: [], pos: null, isParticle: false, error, source: null,
     };
   }
   const first = results[0];
@@ -95,6 +96,6 @@ function morphoSysToAnalysis(
     suffixes: first.suffixes,
     root: first.root !== '-' ? first.root : null,
     pattern: first.pattern, definition: null, lemmas,
-    pos: first.pos || null, isParticle: false, error: null,
+    pos: first.pos || null, isParticle: false, error: null, source: null,
   };
 }

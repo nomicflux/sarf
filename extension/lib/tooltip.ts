@@ -25,8 +25,14 @@ function renderRoot(root: string | null): string {
   return '<div class="sarf-detail sarf-missing">Root: —</div>';
 }
 
-function renderDefinition(definition: string | null): string {
-  if (definition) return `<div class="sarf-definition">${definition}</div>`;
+function renderSource(source: string | null): string {
+  if (!source) return '';
+  const label = source === 'hw' ? 'Hans Wehr' : 'Wiktionary';
+  return ` <span class="sarf-source">${label}</span>`;
+}
+
+function renderDefinition(definition: string | null, source: string | null): string {
+  if (definition) return `<div class="sarf-definition">${definition}${renderSource(source)}</div>`;
   return '<div class="sarf-definition sarf-missing">No definition found</div>';
 }
 
@@ -58,7 +64,7 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }
-  html += renderDefinition(analysis.definition);
+  html += renderDefinition(analysis.definition, analysis.source);
   return html;
 }
 

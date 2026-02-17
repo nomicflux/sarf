@@ -94,6 +94,8 @@ describe('createDictEntries', () => {
     expect(entries[0].definition).toBe('book');
     expect(entries[0].isRoot).toBe(false);
     expect(entries[0].parentId).toBe(24931);
+    expect(entries[0].source).toBe('wk');
     expect(entries[1].id).toBe(24932);
+    expect(entries[1].source).toBe('wk');
   });
 });

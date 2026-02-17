@@ -11,6 +11,7 @@ export interface MorphAnalysis {
   pos: string | null;
   isParticle: boolean;
   error: string | null;
+  source: string | null;
 }
 
 export interface AnalyzeRequest {
