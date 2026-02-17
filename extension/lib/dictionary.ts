@@ -67,8 +67,12 @@ export function lookupWithFallback(
 
 const DIACRITICS = /[\u064B-\u065F\u0670]/g;
 
+export function normalizeAlif(text: string): string {
+  return text.replace(/[\u0622\u0623\u0625]/g, '\u0627');
+}
+
 export function stripDiacritics(text: string): string {
-  return text.replace(DIACRITICS, '');
+  return normalizeAlif(text.replace(DIACRITICS, ''));
 }
 
 export function lookupByLemma(
@@ -79,4 +83,15 @@ export function lookupByLemma(
   if (!entry) return { definition: null, rootWord: null };
   const root = findRootEntry(index, entry);
   return { definition: entry.definition, rootWord: root?.word ?? null };
+}
+
+export function lookupAnalysis(
+  index: DictIndex,
+  analysis: { lemmas: string[]; stem: string; verbStem: string | null },
+): { definition: string | null; rootWord: string | null } {
+  for (const lemma of analysis.lemmas) {
+    const result = lookupByLemma(index, lemma);
+    if (result.definition) return result;
+  }
+  return lookupWithFallback(index, analysis.stem, analysis.verbStem);
 }

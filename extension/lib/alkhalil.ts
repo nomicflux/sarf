@@ -1,3 +1,5 @@
+import { XMLParser } from 'fast-xml-parser';
+
 const ALKHALIL_URL = 'http://oujda-nlp-team.net:8080/api/ApiRacine';
 
 export async function alkhalilRoot(word: string): Promise<string | null> {
@@ -36,24 +38,29 @@ export function parseEncField(enc: string): string[] {
   return enc.split('+').map(extractMorpheme);
 }
 
+const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' });
+
+function toArray<T>(val: T | T[] | undefined): T[] {
+  if (val === undefined) return [];
+  return Array.isArray(val) ? val : [val];
+}
+
 export function parseMorphoSysXml(xml: string): MorphoSysAnalysis[] {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, 'text/xml');
-  const nodes = doc.querySelectorAll('morph_feature_set');
-  return Array.from(nodes).map((node) => ({
-    lemma: node.getAttribute('lemma') ?? '',
-    root: node.getAttribute('root') ?? '',
-    prefixes: parseProcField(node.getAttribute('proc') ?? '#'),
-    suffixes: parseEncField(node.getAttribute('enc') ?? '#'),
-    pattern: node.getAttribute('pat_lemma') || null,
-    pos: node.getAttribute('pos') ?? '',
+  const parsed = xmlParser.parse(xml);
+  const sets = toArray(parsed?.analysis?.result?.morph_feature_set);
+  return sets.map((s: Record<string, string>) => ({
+    lemma: s.lemma ?? '',
+    root: s.root ?? '',
+    prefixes: parseProcField(s.proc ?? '#'),
+    suffixes: parseEncField(s.enc ?? '#'),
+    pattern: s.pat_lemma || null,
+    pos: s.pos ?? '',
   }));
 }
 
-export async function fetchMorphoSys(word: string): Promise<MorphoSysAnalysis | null> {
+export async function fetchMorphoSys(word: string): Promise<MorphoSysAnalysis[]> {
   const body = new URLSearchParams({ textinput: word });
   const res = await fetch(MORPHOSYS_URL, { method: 'POST', body });
   const xml = await res.text();
-  const results = parseMorphoSysXml(xml);
-  return results[0] ?? null;
+  return parseMorphoSysXml(xml);
 }

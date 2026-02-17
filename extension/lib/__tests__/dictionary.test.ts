@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, lookupByLemma } from '../dictionary';
+import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, normalizeAlif, lookupByLemma, lookupAnalysis } from '../dictionary';
 import type { DictEntry } from '../dictionary';
 
 const sampleEntries: DictEntry[] = [
@@ -75,11 +75,29 @@ describe('stripDiacritics', () => {
   });
 
   it('removes shadda', () => {
-    expect(stripDiacritics('إِدَارِيّ')).toBe('إداري');
+    expect(stripDiacritics('إِدَارِيّ')).toBe('اداري');
   });
 
   it('returns plain text unchanged', () => {
     expect(stripDiacritics('كتاب')).toBe('كتاب');
+  });
+});
+
+describe('normalizeAlif', () => {
+  it('normalizes hamza below alif', () => {
+    expect(normalizeAlif('إمساك')).toBe('امساك');
+  });
+
+  it('normalizes hamza above alif', () => {
+    expect(normalizeAlif('أحمد')).toBe('احمد');
+  });
+
+  it('normalizes alif madda', () => {
+    expect(normalizeAlif('آخر')).toBe('اخر');
+  });
+
+  it('leaves bare alif unchanged', () => {
+    expect(normalizeAlif('امساك')).toBe('امساك');
   });
 });
 
@@ -96,5 +114,29 @@ describe('lookupByLemma', () => {
     const result = lookupByLemma(index, 'مَجْهُول');
     expect(result.definition).toBeNull();
     expect(result.rootWord).toBeNull();
+  });
+});
+
+describe('lookupAnalysis', () => {
+  const index = buildIndex(sampleEntries);
+
+  it('finds by first matching lemma', () => {
+    const result = lookupAnalysis(index, { lemmas: ['مَجْهُول', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
+    expect(result.definition).toBe('kitāb book; writing');
+  });
+
+  it('falls back to stem when no lemma matches', () => {
+    const result = lookupAnalysis(index, { lemmas: ['مَجْهُول'], stem: 'درس', verbStem: null });
+    expect(result.definition).toBe('darasa to study');
+  });
+
+  it('tries all lemmas before falling back', () => {
+    const result = lookupAnalysis(index, { lemmas: ['abc', 'def', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
+    expect(result.definition).toBe('kitāb book; writing');
+  });
+
+  it('returns nulls when nothing found', () => {
+    const result = lookupAnalysis(index, { lemmas: [], stem: 'xyz', verbStem: null });
+    expect(result.definition).toBeNull();
   });
 });

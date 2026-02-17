@@ -30,9 +30,9 @@ function renderDefinition(definition: string | null): string {
   return '<div class="sarf-definition sarf-missing">No definition found</div>';
 }
 
-function renderLemma(lemma: string | null): string {
-  if (!lemma) return '';
-  return `<div class="sarf-detail">Lemma: ${lemma}</div>`;
+function renderLemmas(lemmas: string[]): string {
+  if (lemmas.length === 0) return '';
+  return `<div class="sarf-detail">Lemma: ${lemmas.join(', ')}</div>`;
 }
 
 function renderPos(pos: string | null): string {
@@ -40,16 +40,19 @@ function renderPos(pos: string | null): string {
   return `<div class="sarf-detail sarf-pos">${pos}</div>`;
 }
 
+function renderError(error: string | null): string {
+  if (!error) return '';
+  return `<div class="sarf-detail sarf-error">${error}</div>`;
+}
+
 export function renderAnalysis(analysis: MorphAnalysis): string {
-  if (analysis.isParticle) {
-    return `<span class="sarf-particle">حرف</span> <span class="sarf-stem">${analysis.original}</span>`;
-  }
+  if (analysis.error) return renderError(analysis.error);
   const parts: string[] = [];
   analysis.prefixes.forEach((p) => parts.push(`<span class="sarf-prefix">${p}</span>`));
   parts.push(`<span class="sarf-stem">${analysis.stem}</span>`);
   analysis.suffixes.forEach((s) => parts.push(`<span class="sarf-suffix">${s}</span>`));
   let html = parts.join('<span class="sarf-separator"> + </span>');
-  html += renderLemma(analysis.lemma);
+  html += renderLemmas(analysis.lemmas);
   html += renderRoot(analysis.root);
   html += renderPos(analysis.pos);
   if (analysis.pattern) {

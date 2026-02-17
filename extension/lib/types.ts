@@ -7,9 +7,10 @@ export interface MorphAnalysis {
   root: string | null;
   pattern: string | null;
   definition: string | null;
-  lemma: string | null;
+  lemmas: string[];
   pos: string | null;
   isParticle: boolean;
+  error: string | null;
 }
 
 export interface AnalyzeRequest {

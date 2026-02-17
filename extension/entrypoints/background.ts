@@ -1,11 +1,9 @@
-import { init, analyze_word } from '../../pkg/sarf_core';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
-import { farasaStem } from '../lib/farasa';
-import { alkhalilRoot, fetchMorphoSys } from '../lib/alkhalil';
+import { fetchMorphoSys } from '../lib/alkhalil';
 import type { MorphoSysAnalysis } from '../lib/alkhalil';
 import { withTimeout } from '../lib/timeout';
 import { createCache } from '../lib/cache';
-import { buildIndex, lookupWithFallback, lookupByLemma, stripDiacritics } from '../lib/dictionary';
+import { buildIndex, lookupAnalysis, stripDiacritics } from '../lib/dictionary';
 import type { DictEntry, DictIndex } from '../lib/dictionary';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
@@ -23,7 +21,6 @@ async function loadDictionary(): Promise<DictIndex> {
 export default defineBackground({
   type: 'module',
   main() {
-    init();
     loadDictionary();
 
     chrome.runtime.onMessage.addListener(
@@ -47,103 +44,50 @@ async function handleAnalyze(
   const cached = cache.get(word);
   if (cached) return sendResponse(cached);
 
-  const morphoSys = await tryMorphoSys(word);
-  const analysis = morphoSys ?? parseAnalysis(analyze_word(word));
-  const enriched = morphoSys ? analysis : await enrichWithFarasa(analysis);
-  const withAlkhalil = morphoSys ? enriched : await enrichWithAlkhalil(enriched);
-  const withDict = await enrichWithDictionary(withAlkhalil);
+  const { results, error } = await fetchMorphoSysSafe(word);
+  const analysis = morphoSysToAnalysis(word, results, error);
+  const withDict = await enrichWithDictionary(analysis);
   cache.set(word, withDict);
   sendResponse(withDict);
 }
 
-function parseAnalysis(json: string): MorphAnalysis {
-  const raw = JSON.parse(json);
-  return {
-    original: raw.original,
-    prefixes: raw.prefixes,
-    stem: raw.stem,
-    verbStem: raw.verb_stem ?? null,
-    suffixes: raw.suffixes,
-    root: raw.root ?? null,
-    pattern: raw.pattern ?? null,
-    definition: null,
-    lemma: null,
-    pos: null,
-    isParticle: raw.is_particle,
-  };
+async function fetchMorphoSysSafe(
+  word: string,
+): Promise<{ results: MorphoSysAnalysis[]; error: string | null }> {
+  try {
+    const results = await withTimeout(fetchMorphoSys(word), 3000);
+    return { results, error: null };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { results: [], error: `MorphoSys failed: ${msg}` };
+  }
 }
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
   const dict = await loadDictionary();
-  if (analysis.lemma) {
-    const { definition, rootWord } = lookupByLemma(dict, analysis.lemma);
-    if (definition) {
-      const root = analysis.root ?? rootWord;
-      return { ...analysis, definition, root };
-    }
+  const result = lookupAnalysis(dict, analysis);
+  const root = analysis.root ?? result.rootWord;
+  return { ...analysis, definition: result.definition, root };
+}
+
+function morphoSysToAnalysis(
+  original: string, results: MorphoSysAnalysis[], error: string | null,
+): MorphAnalysis {
+  if (results.length === 0) {
+    return {
+      original, prefixes: [], stem: original, verbStem: null,
+      suffixes: [], root: null, pattern: null, definition: null,
+      lemmas: [], pos: null, isParticle: false, error,
+    };
   }
-  const { definition, rootWord } = lookupWithFallback(dict, analysis.stem, analysis.verbStem);
-  const root = analysis.root ?? rootWord;
-  return { ...analysis, definition, root };
-}
-
-async function enrichWithFarasa(analysis: MorphAnalysis): Promise<MorphAnalysis> {
-  if (analysis.isParticle) return analysis;
-  const apiKey = await getApiKey();
-  if (!apiKey) return analysis;
-  return applyFarasaRoot(analysis, apiKey);
-}
-
-async function getApiKey(): Promise<string | null> {
-  const data = await chrome.storage.local.get('farasaApiKey');
-  const key = data.farasaApiKey;
-  return typeof key === 'string' ? key : null;
-}
-
-async function applyFarasaRoot(analysis: MorphAnalysis, apiKey: string): Promise<MorphAnalysis> {
-  try {
-    const root = await withTimeout(farasaStem(analysis.stem, apiKey), 3000);
-    return { ...analysis, root: root || analysis.root };
-  } catch {
-    return analysis;
-  }
-}
-
-async function enrichWithAlkhalil(analysis: MorphAnalysis): Promise<MorphAnalysis> {
-  if (analysis.root || analysis.isParticle) return analysis;
-  return applyAlkhalilRoot(analysis);
-}
-
-async function applyAlkhalilRoot(analysis: MorphAnalysis): Promise<MorphAnalysis> {
-  try {
-    const root = await withTimeout(alkhalilRoot(analysis.stem), 3000);
-    return { ...analysis, root: root || analysis.root };
-  } catch {
-    return analysis;
-  }
-}
-
-async function tryMorphoSys(word: string): Promise<MorphAnalysis | null> {
-  try {
-    const ms = await withTimeout(fetchMorphoSys(word), 3000);
-    return ms ? morphoSysToAnalysis(word, ms) : null;
-  } catch {
-    return null;
-  }
-}
-
-function morphoSysToAnalysis(original: string, ms: MorphoSysAnalysis): MorphAnalysis {
+  const first = results[0];
+  const lemmas = [...new Set(results.map((r) => stripDiacritics(r.lemma)))];
   return {
-    original,
-    prefixes: ms.prefixes,
-    stem: stripDiacritics(ms.lemma),
-    verbStem: null,
-    suffixes: ms.suffixes,
-    root: ms.root !== '-' ? ms.root : null,
-    pattern: ms.pattern,
-    definition: null,
-    lemma: stripDiacritics(ms.lemma),
-    pos: ms.pos || null,
-    isParticle: false,
+    original, prefixes: first.prefixes,
+    stem: stripDiacritics(first.lemma), verbStem: null,
+    suffixes: first.suffixes,
+    root: first.root !== '-' ? first.root : null,
+    pattern: first.pattern, definition: null, lemmas,
+    pos: first.pos || null, isParticle: false, error: null,
   };
 }

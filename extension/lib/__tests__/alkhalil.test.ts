@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { alkhalilRoot, parseAlkhalilResponse, extractMorpheme, parseProcField, parseEncField, parseMorphoSysXml, fetchMorphoSys } from '../alkhalil';
 
@@ -107,22 +106,22 @@ describe('fetchMorphoSys', () => {
     mockFetch.mockReset();
   });
 
-  it('posts to MorphoSys API and returns first result', async () => {
+  it('posts to MorphoSys API and returns all results', async () => {
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <analysis>
-  <result word='كتاب' nbresult='1'>
+  <result word='كتاب' nbresult='2'>
     <morph_feature_set lemma="كِتَاب" root="كتب" pat_lemma="فِعَال"
       pos="اسم" proc="#" enc="#" diac="كِتَابٌ" stem="كِتَابٌ" cas="مرفوع" />
+    <morph_feature_set lemma="كُتَّاب" root="كتب" pat_lemma="فُعَّال"
+      pos="اسم" proc="#" enc="#" diac="كُتَّابٌ" stem="كُتَّابٌ" cas="مرفوع" />
   </result>
 </analysis>`;
     mockFetch.mockResolvedValue({ text: async () => xml });
 
-    const result = await fetchMorphoSys('كتاب');
-    expect(result).not.toBeNull();
-    expect(result!.lemma).toBe('كِتَاب');
-    expect(result!.root).toBe('كتب');
-    expect(result!.prefixes).toEqual([]);
-    expect(result!.suffixes).toEqual([]);
+    const results = await fetchMorphoSys('كتاب');
+    expect(results).toHaveLength(2);
+    expect(results[0].lemma).toBe('كِتَاب');
+    expect(results[1].lemma).toBe('كُتَّاب');
     expect(mockFetch).toHaveBeenCalledWith(
       'http://oujda-nlp-team.net:8081/api/alkhalil',
       expect.objectContaining({ method: 'POST' })

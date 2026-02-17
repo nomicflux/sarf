@@ -22,5 +22,8 @@
     "vite-plugin-wasm": "latest",
     "vitest": "latest",
     "wxt": "latest"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.6"
   }
 }

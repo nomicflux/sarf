@@ -3,7 +3,7 @@ import { renderAnalysis, clampPosition } from '../tooltip';
 import type { MorphAnalysis } from '../types';
 
 describe('renderAnalysis', () => {
-  it('renders particle with label', () => {
+  it('renders particle with stem', () => {
     const analysis: MorphAnalysis = {
       original: 'في',
       prefixes: [],
@@ -13,14 +13,15 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: true,
+      error: null,
     };
     const html = renderAnalysis(analysis);
-    expect(html).toContain('sarf-particle');
-    expect(html).toContain('حرف');
+    expect(html).toContain('sarf-stem');
     expect(html).toContain('في');
+    expect(html).toContain('sarf-missing');
   });
 
   it('renders word with prefixes', () => {
@@ -33,9 +34,10 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-prefix');
@@ -56,9 +58,10 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-stem');
@@ -77,9 +80,10 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-stem');
@@ -97,9 +101,10 @@ describe('renderAnalysis', () => {
       root: 'ك ت ب',
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-detail');
@@ -116,9 +121,10 @@ describe('renderAnalysis', () => {
       root: 'ك ت ب',
       pattern: null,
       definition: 'book; writing',
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-definition');
@@ -135,9 +141,10 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-missing');
@@ -154,34 +161,16 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
-      lemma: null,
+      lemmas: [],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('No definition found');
     expect(html).toContain('sarf-missing');
   });
 
-  it('does not show missing indicators for particle', () => {
-    const analysis: MorphAnalysis = {
-      original: 'في',
-      prefixes: [],
-      stem: 'في',
-      verbStem: null,
-      suffixes: [],
-      root: null,
-      pattern: null,
-      definition: null,
-      lemma: null,
-      pos: null,
-      isParticle: true,
-    };
-    const html = renderAnalysis(analysis);
-    expect(html).not.toContain('sarf-missing');
-    expect(html).not.toContain('Root: —');
-    expect(html).not.toContain('No definition found');
-  });
 
   it('renders lemma when present', () => {
     const analysis: MorphAnalysis = {
@@ -193,9 +182,10 @@ describe('renderAnalysis', () => {
       root: 'دور',
       pattern: null,
       definition: 'administrative',
-      lemma: 'إداري',
+      lemmas: ['إداري'],
       pos: null,
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('Lemma: إداري');
@@ -212,9 +202,10 @@ describe('renderAnalysis', () => {
       root: 'دور',
       pattern: null,
       definition: 'administrative',
-      lemma: 'إداري',
+      lemmas: ['إداري'],
       pos: 'اسم|نسبة|مفرد|مؤنث|معرف',
       isParticle: false,
+      error: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('اسم|نسبة|مفرد|مؤنث|معرف');
