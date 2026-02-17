@@ -99,6 +99,27 @@
 ## Explicitly Rejected (Phase 8)
 - Replacing Farasa entirely (user chose fallback, not replacement)
 
+## Phase 9: AlKhalil MorphoSys Integration — COMPLETE
+- Added MorphoSys as primary morphological analysis pipeline
+- POST `http://oujda-nlp-team.net:8081/api/alkhalil` with `textinput={word}` — returns full XML morphological analysis
+- New pure functions: `extractMorpheme`, `parseProcField`, `parseEncField`, `parseMorphoSysXml` in alkhalil.ts
+- New `fetchMorphoSys` API client for MorphoSys endpoint
+- Added `lemma: string | null` to `MorphAnalysis` type
+- Added `stripDiacritics` and `lookupByLemma` to dictionary.ts for lemma-based dictionary lookup
+- Pipeline: MorphoSys → [success] lemma-based lookup / [failure] WASM → Farasa → AlKhalil root → dictionary
+- `enrichWithDictionary` tries lemma lookup first, falls back to stem/verbStem
+- Tests: 63 total pass (15 new), typecheck clean
+
+## Agreements Made (Phase 9)
+- 2026-02-16: User chose "Yes, replace" manual stripping with a real service
+- 2026-02-16: User chose "Find another service" (not Farasa, not heuristics-only)
+- 2026-02-16: AlKhalil MorphoSys discovered — free, no key, full morphological analysis
+
+## Explicitly Rejected (Phase 9)
+- Farasa segmentation (requires API key — user rejected)
+- Fixing heuristics only (user wants real morphological understanding)
+- Web API-only search (user corrected: solutions include client-side, not just web APIs)
+
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.
 - `تلقب` showed bare word because ت (verb prefix) was not stripped and `تلقب` is not a dictionary headword. Fixed by adding verb prefix stripping + dictionary fallback lookup.

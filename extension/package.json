@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.1.36",
+    "jsdom": "^28.1.0",
     "typescript": "latest",
     "vite-plugin-top-level-await": "latest",
     "vite-plugin-wasm": "latest",

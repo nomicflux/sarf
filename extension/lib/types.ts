@@ -7,6 +7,7 @@ export interface MorphAnalysis {
   root: string | null;
   pattern: string | null;
   definition: string | null;
+  lemma: string | null;
   isParticle: boolean;
 }
 

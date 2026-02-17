@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback } from '../dictionary';
+import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, lookupByLemma } from '../dictionary';
 import type { DictEntry } from '../dictionary';
 
 const sampleEntries: DictEntry[] = [
@@ -64,6 +64,36 @@ describe('lookupWithFallback', () => {
 
   it('returns nulls when neither found', () => {
     const result = lookupWithFallback(index, 'xyz', 'abc');
+    expect(result.definition).toBeNull();
+    expect(result.rootWord).toBeNull();
+  });
+});
+
+describe('stripDiacritics', () => {
+  it('removes Arabic diacritics', () => {
+    expect(stripDiacritics('كِتَابٌ')).toBe('كتاب');
+  });
+
+  it('removes shadda', () => {
+    expect(stripDiacritics('إِدَارِيّ')).toBe('إداري');
+  });
+
+  it('returns plain text unchanged', () => {
+    expect(stripDiacritics('كتاب')).toBe('كتاب');
+  });
+});
+
+describe('lookupByLemma', () => {
+  const index = buildIndex(sampleEntries);
+
+  it('finds entry after stripping diacritics', () => {
+    const result = lookupByLemma(index, 'كِتَابٌ');
+    expect(result.definition).toBe('kitāb book; writing');
+    expect(result.rootWord).toBe('كتب');
+  });
+
+  it('returns nulls when lemma not found', () => {
+    const result = lookupByLemma(index, 'مَجْهُول');
     expect(result.definition).toBeNull();
     expect(result.rootWord).toBeNull();
   });

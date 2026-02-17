@@ -64,3 +64,19 @@ export function lookupWithFallback(
   }
   return { definition: null, rootWord: null };
 }
+
+const DIACRITICS = /[\u064B-\u065F\u0670]/g;
+
+export function stripDiacritics(text: string): string {
+  return text.replace(DIACRITICS, '');
+}
+
+export function lookupByLemma(
+  index: DictIndex, lemma: string,
+): { definition: string | null; rootWord: string | null } {
+  const bare = stripDiacritics(lemma);
+  const entry = lookupWord(index, bare);
+  if (!entry) return { definition: null, rootWord: null };
+  const root = findRootEntry(index, entry);
+  return { definition: entry.definition, rootWord: root?.word ?? null };
+}

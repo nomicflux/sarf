@@ -13,6 +13,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: true,
     };
     const html = renderAnalysis(analysis);
@@ -31,6 +32,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -52,6 +54,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -71,6 +74,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -89,6 +93,7 @@ describe('renderAnalysis', () => {
       root: 'ك ت ب',
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -106,6 +111,7 @@ describe('renderAnalysis', () => {
       root: 'ك ت ب',
       pattern: null,
       definition: 'book; writing',
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -123,6 +129,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -140,6 +147,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -157,6 +165,7 @@ describe('renderAnalysis', () => {
       root: null,
       pattern: null,
       definition: null,
+      lemma: null,
       isParticle: true,
     };
     const html = renderAnalysis(analysis);

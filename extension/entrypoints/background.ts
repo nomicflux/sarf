@@ -1,10 +1,11 @@
 import { init, analyze_word } from '../../pkg/sarf_core';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 import { farasaStem } from '../lib/farasa';
-import { alkhalilRoot } from '../lib/alkhalil';
+import { alkhalilRoot, fetchMorphoSys } from '../lib/alkhalil';
+import type { MorphoSysAnalysis } from '../lib/alkhalil';
 import { withTimeout } from '../lib/timeout';
 import { createCache } from '../lib/cache';
-import { buildIndex, lookupWithFallback } from '../lib/dictionary';
+import { buildIndex, lookupWithFallback, lookupByLemma, stripDiacritics } from '../lib/dictionary';
 import type { DictEntry, DictIndex } from '../lib/dictionary';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
@@ -46,9 +47,10 @@ async function handleAnalyze(
   const cached = cache.get(word);
   if (cached) return sendResponse(cached);
 
-  const result = parseAnalysis(analyze_word(word));
-  const enriched = await enrichWithFarasa(result);
-  const withAlkhalil = await enrichWithAlkhalil(enriched);
+  const morphoSys = await tryMorphoSys(word);
+  const analysis = morphoSys ?? parseAnalysis(analyze_word(word));
+  const enriched = morphoSys ? analysis : await enrichWithFarasa(analysis);
+  const withAlkhalil = morphoSys ? enriched : await enrichWithAlkhalil(enriched);
   const withDict = await enrichWithDictionary(withAlkhalil);
   cache.set(word, withDict);
   sendResponse(withDict);
@@ -65,12 +67,20 @@ function parseAnalysis(json: string): MorphAnalysis {
     root: raw.root ?? null,
     pattern: raw.pattern ?? null,
     definition: null,
+    lemma: null,
     isParticle: raw.is_particle,
   };
 }
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
   const dict = await loadDictionary();
+  if (analysis.lemma) {
+    const { definition, rootWord } = lookupByLemma(dict, analysis.lemma);
+    if (definition) {
+      const root = analysis.root ?? rootWord;
+      return { ...analysis, definition, root };
+    }
+  }
   const { definition, rootWord } = lookupWithFallback(dict, analysis.stem, analysis.verbStem);
   const root = analysis.root ?? rootWord;
   return { ...analysis, definition, root };
@@ -110,4 +120,28 @@ async function applyAlkhalilRoot(analysis: MorphAnalysis): Promise<MorphAnalysis
   } catch {
     return analysis;
   }
+}
+
+async function tryMorphoSys(word: string): Promise<MorphAnalysis | null> {
+  try {
+    const ms = await withTimeout(fetchMorphoSys(word), 3000);
+    return ms ? morphoSysToAnalysis(word, ms) : null;
+  } catch {
+    return null;
+  }
+}
+
+function morphoSysToAnalysis(original: string, ms: MorphoSysAnalysis): MorphAnalysis {
+  return {
+    original,
+    prefixes: ms.prefixes,
+    stem: stripDiacritics(ms.lemma),
+    verbStem: null,
+    suffixes: ms.suffixes,
+    root: ms.root !== '-' ? ms.root : null,
+    pattern: ms.pattern,
+    definition: null,
+    lemma: stripDiacritics(ms.lemma),
+    isParticle: false,
+  };
 }
