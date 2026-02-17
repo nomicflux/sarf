@@ -35,6 +35,11 @@ function renderLemma(lemma: string | null): string {
   return `<div class="sarf-detail">Lemma: ${lemma}</div>`;
 }
 
+function renderPos(pos: string | null): string {
+  if (!pos) return '';
+  return `<div class="sarf-detail sarf-pos">${pos}</div>`;
+}
+
 export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.isParticle) {
     return `<span class="sarf-particle">حرف</span> <span class="sarf-stem">${analysis.original}</span>`;
@@ -46,6 +51,7 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   let html = parts.join('<span class="sarf-separator"> + </span>');
   html += renderLemma(analysis.lemma);
   html += renderRoot(analysis.root);
+  html += renderPos(analysis.pos);
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }

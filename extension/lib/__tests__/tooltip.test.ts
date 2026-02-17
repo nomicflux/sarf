@@ -14,6 +14,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: true,
     };
     const html = renderAnalysis(analysis);
@@ -33,6 +34,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -55,6 +57,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -75,6 +78,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -94,6 +98,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -112,6 +117,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: 'book; writing',
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -130,6 +136,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -148,6 +155,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
@@ -166,6 +174,7 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: null,
       lemma: null,
+      pos: null,
       isParticle: true,
     };
     const html = renderAnalysis(analysis);
@@ -185,11 +194,31 @@ describe('renderAnalysis', () => {
       pattern: null,
       definition: 'administrative',
       lemma: 'إداري',
+      pos: null,
       isParticle: false,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('Lemma: إداري');
     expect(html).toContain('sarf-detail');
+  });
+
+  it('renders POS when present', () => {
+    const analysis: MorphAnalysis = {
+      original: 'الإدارية',
+      prefixes: ['ال'],
+      stem: 'إداري',
+      verbStem: null,
+      suffixes: ['ة'],
+      root: 'دور',
+      pattern: null,
+      definition: 'administrative',
+      lemma: 'إداري',
+      pos: 'اسم|نسبة|مفرد|مؤنث|معرف',
+      isParticle: false,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('اسم|نسبة|مفرد|مؤنث|معرف');
+    expect(html).toContain('sarf-pos');
   });
 });
 

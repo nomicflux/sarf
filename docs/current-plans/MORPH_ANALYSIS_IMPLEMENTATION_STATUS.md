@@ -101,6 +101,7 @@
 
 ## Phase 9: AlKhalil MorphoSys Integration — COMPLETE
 ## Phase 10: Display Lemma in Tooltip — COMPLETE
+## Phase 11: Display POS in Tooltip — COMPLETE
 - Added MorphoSys as primary morphological analysis pipeline
 - POST `http://oujda-nlp-team.net:8081/api/alkhalil` with `textinput={word}` — returns full XML morphological analysis
 - New pure functions: `extractMorpheme`, `parseProcField`, `parseEncField`, `parseMorphoSysXml` in alkhalil.ts
@@ -125,6 +126,12 @@
 - Added `renderLemma` helper to tooltip.ts — displays lemma between morpheme breakdown and root
 - Lemma only shown when present (MorphoSys path sets it, WASM fallback has null)
 - Tests: 64 total pass, typecheck clean
+
+## Phase 11 Details
+- Added `pos: string | null` to `MorphAnalysis` type
+- `morphoSysToAnalysis` populates `pos` from MorphoSys, `parseAnalysis` sets null for WASM path
+- Added `renderPos` helper to tooltip.ts — displays POS after root, before pattern
+- Tests: 65 total pass, typecheck clean
 
 ## Issues Encountered
 - Background service worker IIFE format doesn't support WASM imports (top-level await). Fixed by using `type: 'module'` in `defineBackground()` to output ESM format.

@@ -68,6 +68,7 @@ function parseAnalysis(json: string): MorphAnalysis {
     pattern: raw.pattern ?? null,
     definition: null,
     lemma: null,
+    pos: null,
     isParticle: raw.is_particle,
   };
 }
@@ -142,6 +143,7 @@ function morphoSysToAnalysis(original: string, ms: MorphoSysAnalysis): MorphAnal
     pattern: ms.pattern,
     definition: null,
     lemma: stripDiacritics(ms.lemma),
+    pos: ms.pos || null,
     isParticle: false,
   };
 }
