@@ -9,7 +9,7 @@
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 14px;
-  max-width: min(300px, 90vw);
+  max-width: min(500px, 90vw);
 }
 
 .sarf-tooltip.sarf-visible {
@@ -54,13 +54,33 @@
   color: #c0c0c0;
   margin-top: 4px;
   font-size: 12px;
-  max-height: 2.8em;
-  overflow: hidden;
-  text-overflow: ellipsis;
   direction: ltr;
   text-align: left;
 }
 
 .sarf-missing {
   opacity: 0.5;
+}
+
+.sarf-divider {
+  border: none;
+  border-top: 1px solid #333;
+  margin: 6px 0;
+}
+
+.sarf-source {
+  color: #7eb8da;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+.sarf-pos {
+  color: #b0a0d0;
+  font-size: 11px;
+}
+
+.sarf-error {
+  color: #d08080;
 }

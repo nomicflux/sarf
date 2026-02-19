@@ -25,15 +25,16 @@ function renderRoot(root: string | null): string {
   return '<div class="sarf-detail sarf-missing">Root: —</div>';
 }
 
-function renderSource(source: string | null): string {
-  if (!source) return '';
-  const label = source === 'hw' ? 'Hans Wehr' : 'Wiktionary';
-  return ` <span class="sarf-source">${label}</span>`;
+function renderOneDefinition(def: { text: string; source: string }): string {
+  const label = def.source === 'hw' ? 'Hans Wehr' : 'Wiktionary';
+  return `<div class="sarf-definition"><span class="sarf-source">${label}</span> ${def.text}</div>`;
 }
 
-function renderDefinition(definition: string | null, source: string | null): string {
-  if (definition) return `<div class="sarf-definition">${definition}${renderSource(source)}</div>`;
-  return '<div class="sarf-definition sarf-missing">No definition found</div>';
+export function renderDefinitions(definitions: Array<{ text: string; source: string }>): string {
+  if (definitions.length === 0) {
+    return '<div class="sarf-definition sarf-missing">No definition found</div>';
+  }
+  return definitions.map(renderOneDefinition).join('');
 }
 
 function renderLemmas(lemmas: string[]): string {
@@ -64,8 +65,8 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }
-  const def = analysis.definitions[0] ?? null;
-  html += renderDefinition(def?.text ?? null, def?.source ?? null);
+  html += '<hr class="sarf-divider">';
+  html += renderDefinitions(analysis.definitions);
   return html;
 }
 

@@ -14,4 +14,13 @@
 - 87/87 tests pass
 - Typecheck clean
 
-## Phase 2: Tooltip Rendering and CSS Overhaul — PENDING
+## Phase 2: Tooltip Rendering and CSS Overhaul — COMPLETE
+
+### Changes Made
+- `extension/lib/tooltip.ts` — Replaced `renderDefinition`/`renderSource` with `renderOneDefinition`/`renderDefinitions`, added `<hr>` divider in `renderAnalysis`
+- `extension/assets/tooltip.css` — Increased max-width to 500px, removed definition height cap, added divider/source/pos/error styles
+- `extension/lib/__tests__/tooltip.test.ts` — Added `renderDefinitions` tests, divider test, updated source label tests
+
+### Verification
+- 93/93 tests pass
+- Typecheck clean

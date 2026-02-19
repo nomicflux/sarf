@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderAnalysis, clampPosition } from '../tooltip';
+import { renderAnalysis, clampPosition, renderDefinitions } from '../tooltip';
 import type { MorphAnalysis } from '../types';
 
 describe('renderAnalysis', () => {
@@ -120,7 +120,7 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definitions: [{ text: 'book; writing', source: '' }],
+      definitions: [{ text: 'book; writing', source: 'hw' }],
       lemmas: [],
       pos: null,
       isParticle: false,
@@ -129,6 +129,8 @@ describe('renderAnalysis', () => {
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-definition');
     expect(html).toContain('book; writing');
+    expect(html).toContain('sarf-source');
+    expect(html).toContain('Hans Wehr');
   });
 
   it('shows missing root indicator for non-particle', () => {
@@ -228,8 +230,8 @@ describe('renderAnalysis', () => {
       error: null,
     };
     const html = renderAnalysis(analysis);
-    expect(html).toContain('Hans Wehr');
-    expect(html).toContain('sarf-source');
+    expect(html).toContain('<span class="sarf-source">Hans Wehr</span>');
+    expect(html).toContain('book');
   });
 
   it('renders Wiktionary source label when present', () => {
@@ -248,8 +250,63 @@ describe('renderAnalysis', () => {
       error: null,
     };
     const html = renderAnalysis(analysis);
+    expect(html).toContain('<span class="sarf-source">Wiktionary</span>');
+    expect(html).toContain('book');
+  });
+
+  it('renders divider before definitions', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      verbStem: null,
+      suffixes: [],
+      root: null,
+      pattern: null,
+      definitions: [{ text: 'book', source: 'hw' }],
+      lemmas: [],
+      pos: null,
+      isParticle: false,
+      error: null,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('sarf-divider');
+  });
+});
+
+describe('renderDefinitions', () => {
+  it('returns missing message for empty array', () => {
+    const html = renderDefinitions([]);
+    expect(html).toContain('No definition found');
+    expect(html).toContain('sarf-missing');
+  });
+
+  it('renders single definition with source label', () => {
+    const html = renderDefinitions([{ text: 'book', source: 'hw' }]);
+    expect(html).toContain('sarf-definition');
+    expect(html).toContain('<span class="sarf-source">Hans Wehr</span>');
+    expect(html).toContain('book');
+  });
+
+  it('renders multiple definitions', () => {
+    const html = renderDefinitions([
+      { text: 'book', source: 'hw' },
+      { text: 'writing', source: 'wk' },
+    ]);
+    expect(html).toContain('book');
+    expect(html).toContain('writing');
+    expect(html).toContain('Hans Wehr');
     expect(html).toContain('Wiktionary');
-    expect(html).toContain('sarf-source');
+  });
+
+  it('renders Hans Wehr source correctly', () => {
+    const html = renderDefinitions([{ text: 'test', source: 'hw' }]);
+    expect(html).toContain('Hans Wehr');
+  });
+
+  it('renders Wiktionary source correctly', () => {
+    const html = renderDefinitions([{ text: 'test', source: 'wk' }]);
+    expect(html).toContain('Wiktionary');
   });
 });
 
