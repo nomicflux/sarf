@@ -75,7 +75,8 @@ async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnaly
   const dict = await loadDictionary();
   const result = lookupAnalysis(dict, analysis);
   const root = analysis.root ?? result.rootWord;
-  return { ...analysis, definition: result.definition, root, source: result.source };
+  const definitions = result.entries.map(e => ({ text: e.definition, source: e.source }));
+  return { ...analysis, definitions, root };
 }
 
 function morphoSysToAnalysis(
@@ -84,8 +85,8 @@ function morphoSysToAnalysis(
   if (results.length === 0) {
     return {
       original, prefixes: [], stem: original, verbStem: null,
-      suffixes: [], root: null, pattern: null, definition: null,
-      lemmas: [], pos: null, isParticle: false, error, source: null,
+      suffixes: [], root: null, pattern: null, definitions: [],
+      lemmas: [], pos: null, isParticle: false, error,
     };
   }
   const first = results[0];
@@ -95,7 +96,7 @@ function morphoSysToAnalysis(
     stem: stripDiacritics(first.lemma), verbStem: null,
     suffixes: first.suffixes,
     root: first.root !== '-' ? first.root : null,
-    pattern: first.pattern, definition: null, lemmas,
-    pos: first.pos || null, isParticle: false, error: null, source: null,
+    pattern: first.pattern, definitions: [], lemmas,
+    pos: first.pos || null, isParticle: false, error: null,
   };
 }

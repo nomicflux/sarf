@@ -46,24 +46,28 @@ export function lookupRootWord(index: DictIndex, word: string): string | null {
   return root?.word ?? null;
 }
 
+export function lookupAllWords(index: DictIndex, word: string): DictEntry[] {
+  return index.byWord.get(word) ?? [];
+}
+
 export function lookupWithFallback(
   index: DictIndex,
   stem: string,
   verbStem: string | null,
-): { definition: string | null; rootWord: string | null; source: string | null } {
-  const entry = lookupWord(index, stem);
-  if (entry) {
-    const root = findRootEntry(index, entry);
-    return { definition: entry.definition, rootWord: root?.word ?? null, source: entry.source };
+): { entries: DictEntry[]; rootWord: string | null } {
+  const entries = lookupAllWords(index, stem);
+  if (entries.length > 0) {
+    const root = findRootEntry(index, entries[0]);
+    return { entries, rootWord: root?.word ?? null };
   }
   if (verbStem) {
-    const fallback = lookupWord(index, verbStem);
-    if (fallback) {
-      const root = findRootEntry(index, fallback);
-      return { definition: fallback.definition, rootWord: root?.word ?? null, source: fallback.source };
+    const fallback = lookupAllWords(index, verbStem);
+    if (fallback.length > 0) {
+      const root = findRootEntry(index, fallback[0]);
+      return { entries: fallback, rootWord: root?.word ?? null };
     }
   }
-  return { definition: null, rootWord: null, source: null };
+  return { entries: [], rootWord: null };
 }
 
 const DIACRITICS = /[\u064B-\u065F\u0670]/g;
@@ -78,21 +82,27 @@ export function stripDiacritics(text: string): string {
 
 export function lookupByLemma(
   index: DictIndex, lemma: string,
-): { definition: string | null; rootWord: string | null; source: string | null } {
+): { entries: DictEntry[]; rootWord: string | null } {
   const bare = stripDiacritics(lemma);
-  const entry = lookupWord(index, bare);
-  if (!entry) return { definition: null, rootWord: null, source: null };
-  const root = findRootEntry(index, entry);
-  return { definition: entry.definition, rootWord: root?.word ?? null, source: entry.source };
+  const entries = lookupAllWords(index, bare);
+  if (entries.length === 0) return { entries: [], rootWord: null };
+  const root = findRootEntry(index, entries[0]);
+  return { entries, rootWord: root?.word ?? null };
 }
 
 export function lookupAnalysis(
   index: DictIndex,
   analysis: { lemmas: string[]; stem: string; verbStem: string | null },
-): { definition: string | null; rootWord: string | null; source: string | null } {
+): { entries: DictEntry[]; rootWord: string | null } {
+  const allEntries: DictEntry[] = [];
+  let rootWord: string | null = null;
   for (const lemma of analysis.lemmas) {
     const result = lookupByLemma(index, lemma);
-    if (result.definition) return result;
+    if (result.entries.length > 0) {
+      allEntries.push(...result.entries);
+      rootWord = rootWord ?? result.rootWord;
+    }
   }
+  if (allEntries.length > 0) return { entries: allEntries, rootWord };
   return lookupWithFallback(index, analysis.stem, analysis.verbStem);
 }

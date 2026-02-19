@@ -64,7 +64,8 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: ${analysis.pattern}</div>`;
   }
-  html += renderDefinition(analysis.definition, analysis.source);
+  const def = analysis.definitions[0] ?? null;
+  html += renderDefinition(def?.text ?? null, def?.source ?? null);
   return html;
 }
 

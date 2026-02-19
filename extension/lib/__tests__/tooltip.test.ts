@@ -12,12 +12,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: true,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-stem');
@@ -34,12 +33,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-prefix');
@@ -59,12 +57,11 @@ describe('renderAnalysis', () => {
       suffixes: ['ها'],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-stem');
@@ -82,12 +79,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-stem');
@@ -104,12 +100,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-detail');
@@ -125,12 +120,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definition: 'book; writing',
+      definitions: [{ text: 'book; writing', source: '' }],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-definition');
@@ -146,12 +140,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-missing');
@@ -167,12 +160,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definition: null,
+      definitions: [],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('No definition found');
@@ -189,12 +181,11 @@ describe('renderAnalysis', () => {
       suffixes: ['ة'],
       root: 'دور',
       pattern: null,
-      definition: 'administrative',
+      definitions: [{ text: 'administrative', source: '' }],
       lemmas: ['إداري'],
       pos: null,
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('Lemma: إداري');
@@ -210,12 +201,11 @@ describe('renderAnalysis', () => {
       suffixes: ['ة'],
       root: 'دور',
       pattern: null,
-      definition: 'administrative',
+      definitions: [{ text: 'administrative', source: '' }],
       lemmas: ['إداري'],
       pos: 'اسم|نسبة|مفرد|مؤنث|معرف',
       isParticle: false,
       error: null,
-      source: null,
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('اسم|نسبة|مفرد|مؤنث|معرف');
@@ -231,12 +221,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definition: 'book',
+      definitions: [{ text: 'book', source: 'hw' }],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: 'hw',
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('Hans Wehr');
@@ -252,12 +241,11 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definition: 'book',
+      definitions: [{ text: 'book', source: 'wk' }],
       lemmas: [],
       pos: null,
       isParticle: false,
       error: null,
-      source: 'wk',
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('Wiktionary');

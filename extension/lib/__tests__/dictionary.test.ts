@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, normalizeAlif, lookupByLemma, lookupAnalysis } from '../dictionary';
+import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, normalizeAlif, lookupByLemma, lookupAnalysis, lookupAllWords } from '../dictionary';
 import type { DictEntry } from '../dictionary';
 
 const sampleEntries: DictEntry[] = [
@@ -47,28 +47,41 @@ describe('dictionary', () => {
   });
 });
 
+describe('lookupAllWords', () => {
+  const index = buildIndex(sampleEntries);
+
+  it('returns all entries for a word', () => {
+    const entries = lookupAllWords(index, 'كتب');
+    expect(entries).toHaveLength(1);
+    expect(entries[0].definition).toBe('kataba to write');
+  });
+
+  it('returns empty array for unknown word', () => {
+    expect(lookupAllWords(index, 'xyz')).toEqual([]);
+  });
+});
+
 describe('lookupWithFallback', () => {
   const index = buildIndex(sampleEntries);
 
   it('returns stem match when found', () => {
     const result = lookupWithFallback(index, 'كتاب', null);
-    expect(result.definition).toBe('kitāb book; writing');
+    expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.rootWord).toBe('كتب');
-    expect(result.source).toBe('hw');
+    expect(result.entries[0].source).toBe('hw');
   });
 
   it('falls back to verbStem when stem not found', () => {
     const result = lookupWithFallback(index, 'تلقب', 'لقب');
-    expect(result.definition).toBe('laqab nickname; title');
+    expect(result.entries[0].definition).toBe('laqab nickname; title');
     expect(result.rootWord).toBe('لقب');
-    expect(result.source).toBe('wk');
+    expect(result.entries[0].source).toBe('wk');
   });
 
   it('returns nulls when neither found', () => {
     const result = lookupWithFallback(index, 'xyz', 'abc');
-    expect(result.definition).toBeNull();
+    expect(result.entries).toEqual([]);
     expect(result.rootWord).toBeNull();
-    expect(result.source).toBeNull();
   });
 });
 
@@ -109,16 +122,15 @@ describe('lookupByLemma', () => {
 
   it('finds entry after stripping diacritics', () => {
     const result = lookupByLemma(index, 'كِتَابٌ');
-    expect(result.definition).toBe('kitāb book; writing');
+    expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.rootWord).toBe('كتب');
-    expect(result.source).toBe('hw');
+    expect(result.entries[0].source).toBe('hw');
   });
 
   it('returns nulls when lemma not found', () => {
     const result = lookupByLemma(index, 'مَجْهُول');
-    expect(result.definition).toBeNull();
+    expect(result.entries).toEqual([]);
     expect(result.rootWord).toBeNull();
-    expect(result.source).toBeNull();
   });
 });
 
@@ -127,25 +139,24 @@ describe('lookupAnalysis', () => {
 
   it('finds by first matching lemma', () => {
     const result = lookupAnalysis(index, { lemmas: ['مَجْهُول', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
-    expect(result.definition).toBe('kitāb book; writing');
-    expect(result.source).toBe('hw');
+    expect(result.entries[0].definition).toBe('kitāb book; writing');
+    expect(result.entries[0].source).toBe('hw');
   });
 
   it('falls back to stem when no lemma matches', () => {
     const result = lookupAnalysis(index, { lemmas: ['مَجْهُول'], stem: 'درس', verbStem: null });
-    expect(result.definition).toBe('darasa to study');
-    expect(result.source).toBe('wk');
+    expect(result.entries[0].definition).toBe('darasa to study');
+    expect(result.entries[0].source).toBe('wk');
   });
 
   it('tries all lemmas before falling back', () => {
     const result = lookupAnalysis(index, { lemmas: ['abc', 'def', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
-    expect(result.definition).toBe('kitāb book; writing');
-    expect(result.source).toBe('hw');
+    expect(result.entries[0].definition).toBe('kitāb book; writing');
+    expect(result.entries[0].source).toBe('hw');
   });
 
   it('returns nulls when nothing found', () => {
     const result = lookupAnalysis(index, { lemmas: [], stem: 'xyz', verbStem: null });
-    expect(result.definition).toBeNull();
-    expect(result.source).toBeNull();
+    expect(result.entries).toEqual([]);
   });
 });
