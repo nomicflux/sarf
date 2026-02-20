@@ -6,7 +6,7 @@ export interface MorphAnalysis {
   suffixes: string[];
   root: string | null;
   pattern: string | null;
-  definitions: Array<{ text: string; source: string }>;
+  definitions: Array<{ word: string; text: string; source: string }>;
   lemmas: string[];
   pos: string | null;
   isParticle: boolean;

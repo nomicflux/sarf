@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { renderAnalysis, clampPosition, renderDefinitions } from '../tooltip';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderAnalysis, clampPosition, renderDefinitions, truncateDefinition, pinTooltip, unpinTooltip, isPinned, hideTooltip, splitPos } from '../tooltip';
 import type { MorphAnalysis } from '../types';
 
 describe('renderAnalysis', () => {
@@ -120,7 +120,7 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definitions: [{ text: 'book; writing', source: 'hw' }],
+      definitions: [{ word: 'كتاب', text: 'book; writing', source: 'hw' }],
       lemmas: [],
       pos: null,
       isParticle: false,
@@ -183,14 +183,14 @@ describe('renderAnalysis', () => {
       suffixes: ['ة'],
       root: 'دور',
       pattern: null,
-      definitions: [{ text: 'administrative', source: '' }],
+      definitions: [{ word: 'إداري', text: 'administrative', source: '' }],
       lemmas: ['إداري'],
       pos: null,
       isParticle: false,
       error: null,
     };
     const html = renderAnalysis(analysis);
-    expect(html).toContain('Lemma: إداري');
+    expect(html).toContain('Lemma: <span class="sarf-value">إداري</span>');
     expect(html).toContain('sarf-detail');
   });
 
@@ -203,15 +203,17 @@ describe('renderAnalysis', () => {
       suffixes: ['ة'],
       root: 'دور',
       pattern: null,
-      definitions: [{ text: 'administrative', source: '' }],
+      definitions: [{ word: 'إداري', text: 'administrative', source: '' }],
       lemmas: ['إداري'],
       pos: 'اسم|نسبة|مفرد|مؤنث|معرف',
       isParticle: false,
       error: null,
     };
     const html = renderAnalysis(analysis);
-    expect(html).toContain('اسم|نسبة|مفرد|مؤنث|معرف');
-    expect(html).toContain('sarf-pos');
+    expect(html).toContain('POS: <span class="sarf-value">اسم</span> · ');
+    expect(html).toContain('نسبة');
+    expect(html).toContain('sarf-features');
+    expect(html).toContain(' · ');
   });
 
   it('renders Hans Wehr source label when present', () => {
@@ -223,7 +225,7 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definitions: [{ text: 'book', source: 'hw' }],
+      definitions: [{ word: 'كتاب', text: 'book', source: 'hw' }],
       lemmas: [],
       pos: null,
       isParticle: false,
@@ -243,7 +245,7 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: 'ك ت ب',
       pattern: null,
-      definitions: [{ text: 'book', source: 'wk' }],
+      definitions: [{ word: 'كتاب', text: 'book', source: 'wk' }],
       lemmas: [],
       pos: null,
       isParticle: false,
@@ -263,7 +265,7 @@ describe('renderAnalysis', () => {
       suffixes: [],
       root: null,
       pattern: null,
-      definitions: [{ text: 'book', source: 'hw' }],
+      definitions: [{ word: 'كتاب', text: 'book', source: 'hw' }],
       lemmas: [],
       pos: null,
       isParticle: false,
@@ -271,6 +273,45 @@ describe('renderAnalysis', () => {
     };
     const html = renderAnalysis(analysis);
     expect(html).toContain('sarf-divider');
+  });
+
+  it('renders word label in definition', () => {
+    const analysis: MorphAnalysis = {
+      original: 'كتاب',
+      prefixes: [],
+      stem: 'كتاب',
+      verbStem: null,
+      suffixes: [],
+      root: null,
+      pattern: null,
+      definitions: [{ word: 'كتاب', text: 'book', source: 'hw' }],
+      lemmas: [],
+      pos: null,
+      isParticle: false,
+      error: null,
+    };
+    const html = renderAnalysis(analysis);
+    expect(html).toContain('<span class="sarf-def-word">كتاب</span>');
+  });
+});
+
+describe('truncateDefinition', () => {
+  it('returns full text when under limit', () => {
+    const result = truncateDefinition('short text');
+    expect(result).toEqual({ short: 'short text', truncated: false });
+  });
+
+  it('truncates text over 200 characters', () => {
+    const longText = 'a'.repeat(250);
+    const result = truncateDefinition(longText);
+    expect(result.short).toHaveLength(200);
+    expect(result.truncated).toBe(true);
+  });
+
+  it('does not truncate exactly 200 characters', () => {
+    const text = 'a'.repeat(200);
+    const result = truncateDefinition(text);
+    expect(result).toEqual({ short: text, truncated: false });
   });
 });
 
@@ -282,7 +323,7 @@ describe('renderDefinitions', () => {
   });
 
   it('renders single definition with source label', () => {
-    const html = renderDefinitions([{ text: 'book', source: 'hw' }]);
+    const html = renderDefinitions([{ word: 'كتاب', text: 'book', source: 'hw' }]);
     expect(html).toContain('sarf-definition');
     expect(html).toContain('<span class="sarf-source">Hans Wehr</span>');
     expect(html).toContain('book');
@@ -290,8 +331,8 @@ describe('renderDefinitions', () => {
 
   it('renders multiple definitions', () => {
     const html = renderDefinitions([
-      { text: 'book', source: 'hw' },
-      { text: 'writing', source: 'wk' },
+      { word: 'كتاب', text: 'book', source: 'hw' },
+      { word: 'كتابة', text: 'writing', source: 'wk' },
     ]);
     expect(html).toContain('book');
     expect(html).toContain('writing');
@@ -300,13 +341,29 @@ describe('renderDefinitions', () => {
   });
 
   it('renders Hans Wehr source correctly', () => {
-    const html = renderDefinitions([{ text: 'test', source: 'hw' }]);
+    const html = renderDefinitions([{ word: 'test', text: 'test', source: 'hw' }]);
     expect(html).toContain('Hans Wehr');
   });
 
   it('renders Wiktionary source correctly', () => {
-    const html = renderDefinitions([{ text: 'test', source: 'wk' }]);
+    const html = renderDefinitions([{ word: 'test', text: 'test', source: 'wk' }]);
     expect(html).toContain('Wiktionary');
+  });
+
+  it('renders ellipsis for long definitions', () => {
+    const longDef = { word: 'كتاب', text: 'a'.repeat(250), source: 'hw' };
+    const html = renderDefinitions([longDef]);
+    expect(html).toContain('sarf-ellipsis');
+    expect(html).toContain('sarf-def-short');
+    expect(html).toContain('sarf-def-full');
+    expect(html).toContain('…');
+  });
+
+  it('does not render ellipsis for short definitions', () => {
+    const shortDef = { word: 'كتاب', text: 'book', source: 'hw' };
+    const html = renderDefinitions([shortDef]);
+    expect(html).not.toContain('sarf-ellipsis');
+    expect(html).not.toContain('sarf-def-short');
   });
 });
 
@@ -321,5 +378,71 @@ describe('clampPosition', () => {
     const pos = clampPosition(-100, -100, 1024, 768, 200, 100);
     expect(pos.x).toBeGreaterThanOrEqual(8);
     expect(pos.y).toBeGreaterThanOrEqual(8);
+  });
+});
+
+describe('pinTooltip', () => {
+  let el: HTMLDivElement;
+
+  beforeEach(() => {
+    el = document.createElement('div');
+    el.className = 'sarf-tooltip';
+  });
+
+  it('adds sarf-pinned class', () => {
+    pinTooltip(el);
+    expect(el.classList.contains('sarf-pinned')).toBe(true);
+  });
+});
+
+describe('isPinned', () => {
+  let el: HTMLDivElement;
+
+  beforeEach(() => {
+    el = document.createElement('div');
+    el.className = 'sarf-tooltip';
+  });
+
+  it('returns true when pinned', () => {
+    el.classList.add('sarf-pinned');
+    expect(isPinned(el)).toBe(true);
+  });
+
+  it('returns false when not pinned', () => {
+    expect(isPinned(el)).toBe(false);
+  });
+});
+
+describe('hideTooltip', () => {
+  let el: HTMLDivElement;
+
+  beforeEach(() => {
+    el = document.createElement('div');
+    el.className = 'sarf-tooltip sarf-visible';
+  });
+
+  it('does not hide when pinned', () => {
+    el.classList.add('sarf-pinned');
+    hideTooltip(el);
+    expect(el.classList.contains('sarf-visible')).toBe(true);
+  });
+
+  it('hides when not pinned', () => {
+    hideTooltip(el);
+    expect(el.classList.contains('sarf-visible')).toBe(false);
+  });
+});
+
+describe('splitPos', () => {
+  it('splits POS tag from features', () => {
+    const result = splitPos('اسم|نسبة|مفرد|مؤنث|معرف');
+    expect(result.tag).toBe('اسم');
+    expect(result.features).toEqual(['نسبة', 'مفرد', 'مؤنث', 'معرف']);
+  });
+
+  it('handles single POS with no features', () => {
+    const result = splitPos('فعل');
+    expect(result.tag).toBe('فعل');
+    expect(result.features).toEqual([]);
   });
 });

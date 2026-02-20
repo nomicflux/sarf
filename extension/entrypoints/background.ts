@@ -15,7 +15,7 @@ async function loadDictionary(): Promise<DictIndex> {
     loadJsonFile('hanswehr.json', 'hw'),
     loadJsonFile('wiktionary.json', 'wk'),
   ]);
-  dictIndex = buildIndex([...hansWehr, ...wiktionary]);
+  dictIndex = buildIndex([...wiktionary, ...hansWehr]);
   return dictIndex;
 }
 
@@ -75,7 +75,7 @@ async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnaly
   const dict = await loadDictionary();
   const result = lookupAnalysis(dict, analysis);
   const root = analysis.root ?? result.rootWord;
-  const definitions = result.entries.map(e => ({ text: e.definition, source: e.source }));
+  const definitions = result.entries.map(e => ({ word: e.word, text: e.definition, source: e.source }));
   return { ...analysis, definitions, root };
 }
 
