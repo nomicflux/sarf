@@ -6,6 +6,8 @@ import { createCache } from '../lib/cache';
 import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
 import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
 import type { CompactEntry } from '../lib/dict-store';
+import { getEnabledDicts } from '../lib/dict-prefs';
+import { filterBySource } from '../lib/filter';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
 let db: IDBDatabase | null = null;
@@ -33,6 +35,10 @@ export default defineBackground({
         return true;
       }
     );
+
+    chrome.storage.onChanged.addListener((changes) => {
+      if (changes.enabledDicts) cache.clear();
+    });
   },
 });
 
@@ -67,11 +73,14 @@ async function fetchMorphoSysSafe(
 }
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
+  const enabledSources = await getEnabledDicts();
+  if (enabledSources.length === 0) return { ...analysis, definitions: [] };
   const database = await ensureDictReady();
   const lookup = (word: string) => queryByWord(database, word);
   const result = await lookupAnalysis(lookup, analysis);
+  const filtered = filterBySource(result.entries, enabledSources);
   const root = analysis.root ?? result.rootWord;
-  const definitions = result.entries.map(e => ({ word: e.word, text: e.definition, source: e.source }));
+  const definitions = filtered.map(e => ({ word: e.word, text: e.definition, source: e.source }));
   return { ...analysis, definitions, root };
 }
 

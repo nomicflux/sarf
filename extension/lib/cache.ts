@@ -26,5 +26,9 @@ export function createCache<T>(maxSize: number, ttlMs: number) {
     if (oldest !== undefined) store.delete(oldest);
   }
 
-  return { get, set, size: () => store.size };
+  function clear(): void {
+    store.clear();
+  }
+
+  return { get, set, clear, size: () => store.size };
 }

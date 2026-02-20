@@ -30,4 +30,13 @@ describe('createCache', () => {
     expect(cache.get('a')).toBeNull();
     vi.useRealTimers();
   });
+
+  it('clears all entries', () => {
+    const cache = createCache<string>(10, 60000);
+    cache.set('a', '1');
+    cache.set('b', '2');
+    cache.clear();
+    expect(cache.size()).toBe(0);
+    expect(cache.get('a')).toBeNull();
+  });
 });
