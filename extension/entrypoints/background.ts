@@ -3,33 +3,28 @@ import { fetchMorphoSys } from '../lib/alkhalil';
 import type { MorphoSysAnalysis } from '../lib/alkhalil';
 import { withTimeout } from '../lib/timeout';
 import { createCache } from '../lib/cache';
-import { buildIndex, lookupAnalysis, stripDiacritics } from '../lib/dictionary';
-import type { DictEntry, DictIndex } from '../lib/dictionary';
+import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
+import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
+import type { CompactEntry } from '../lib/dict-store';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
-let dictIndex: DictIndex | null = null;
+let db: IDBDatabase | null = null;
 
-async function loadDictionary(): Promise<DictIndex> {
-  if (dictIndex) return dictIndex;
-  const [hansWehr, wiktionary] = await Promise.all([
-    loadJsonFile('hanswehr.json', 'hw'),
-    loadJsonFile('wiktionary.json', 'wk'),
-  ]);
-  dictIndex = buildIndex([...wiktionary, ...hansWehr]);
-  return dictIndex;
-}
-
-async function loadJsonFile(filename: string, source: string): Promise<DictEntry[]> {
-  const url = chrome.runtime.getURL(filename);
+async function ensureDictReady(): Promise<IDBDatabase> {
+  if (db) return db;
+  db = await openDictDb();
+  if (await isDictPopulated(db)) return db;
+  const url = chrome.runtime.getURL('dict-compact.json');
   const res = await fetch(url);
-  const entries: DictEntry[] = await res.json();
-  return entries.map(e => ({ ...e, source }));
+  const entries: CompactEntry[] = await res.json();
+  await populateDict(db, entries);
+  return db;
 }
 
 export default defineBackground({
   type: 'module',
   main() {
-    loadDictionary();
+    ensureDictReady();
 
     chrome.runtime.onMessage.addListener(
       (message: unknown, _sender, sendResponse) => {
@@ -72,8 +67,9 @@ async function fetchMorphoSysSafe(
 }
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
-  const dict = await loadDictionary();
-  const result = lookupAnalysis(dict, analysis);
+  const database = await ensureDictReady();
+  const lookup = (word: string) => queryByWord(database, word);
+  const result = await lookupAnalysis(lookup, analysis);
   const root = analysis.root ?? result.rootWord;
   const definitions = result.entries.map(e => ({ word: e.word, text: e.definition, source: e.source }));
   return { ...analysis, definitions, root };

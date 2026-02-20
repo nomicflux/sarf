@@ -1,85 +1,46 @@
 import { describe, it, expect } from 'vitest';
-import { buildIndex, lookupWord, findRootEntry, lookupDefinition, lookupRootWord, lookupWithFallback, stripDiacritics, normalizeAlif, lookupByLemma, lookupAnalysis, lookupAllWords } from '../dictionary';
+import { lookupWithFallback, stripDiacritics, normalizeAlif, lookupByLemma, lookupAnalysis } from '../dictionary';
+import { parseCompactEntry } from '../dict-store';
 import type { DictEntry } from '../dictionary';
+import type { CompactEntry } from '../dict-store';
 
 const sampleEntries: DictEntry[] = [
-  { id: 100, word: 'كتب', definition: 'kataba to write', isRoot: true, parentId: 100, source: 'hw' },
-  { id: 101, word: 'كتاب', definition: 'kitāb book; writing', isRoot: false, parentId: 100, source: 'hw' },
-  { id: 102, word: 'مكتبة', definition: 'maktaba library', isRoot: false, parentId: 100, source: 'hw' },
-  { id: 200, word: 'درس', definition: 'darasa to study', isRoot: true, parentId: 200, source: 'wk' },
-  { id: 300, word: 'لقب', definition: 'laqab nickname; title', isRoot: true, parentId: 300, source: 'wk' },
+  { word: 'كتب', definition: 'kataba to write', rootWord: 'كتب', source: 'hw' },
+  { word: 'كتاب', definition: 'kitāb book; writing', rootWord: 'كتب', source: 'hw' },
+  { word: 'مكتبة', definition: 'maktaba library', rootWord: 'كتب', source: 'hw' },
+  { word: 'درس', definition: 'darasa to study', rootWord: 'درس', source: 'wk' },
+  { word: 'لقب', definition: 'laqab nickname; title', rootWord: 'لقب', source: 'wk' },
 ];
 
-describe('dictionary', () => {
-  const index = buildIndex(sampleEntries);
-
-  it('lookupWord finds exact match', () => {
-    const entry = lookupWord(index, 'كتاب');
-    expect(entry?.definition).toBe('kitāb book; writing');
-  });
-
-  it('lookupWord returns null for unknown', () => {
-    expect(lookupWord(index, 'xyz')).toBeNull();
-  });
-
-  it('findRootEntry returns root for derived entry', () => {
-    const entry = lookupWord(index, 'كتاب')!;
-    const root = findRootEntry(index, entry);
-    expect(root?.word).toBe('كتب');
-  });
-
-  it('findRootEntry returns self for root entry', () => {
-    const entry = lookupWord(index, 'كتب')!;
-    const root = findRootEntry(index, entry);
-    expect(root?.word).toBe('كتب');
-  });
-
-  it('lookupDefinition returns definition string', () => {
-    expect(lookupDefinition(index, 'مكتبة')).toBe('maktaba library');
-  });
-
-  it('lookupRootWord returns root word', () => {
-    expect(lookupRootWord(index, 'كتاب')).toBe('كتب');
-  });
-
-  it('lookupRootWord returns null for unknown', () => {
-    expect(lookupRootWord(index, 'unknown')).toBeNull();
-  });
-});
-
-describe('lookupAllWords', () => {
-  const index = buildIndex(sampleEntries);
-
-  it('returns all entries for a word', () => {
-    const entries = lookupAllWords(index, 'كتب');
-    expect(entries).toHaveLength(1);
-    expect(entries[0].definition).toBe('kataba to write');
-  });
-
-  it('returns empty array for unknown word', () => {
-    expect(lookupAllWords(index, 'xyz')).toEqual([]);
-  });
-});
+function createMockLookup(entries: DictEntry[]): (word: string) => Promise<DictEntry[]> {
+  const map = new Map<string, DictEntry[]>();
+  for (const entry of entries) {
+    const existing = map.get(entry.word) ?? [];
+    existing.push(entry);
+    map.set(entry.word, existing);
+  }
+  return async (word: string) => map.get(word) ?? [];
+}
 
 describe('lookupWithFallback', () => {
-  const index = buildIndex(sampleEntries);
+  const lookup = createMockLookup(sampleEntries);
 
-  it('returns stem match when found', () => {
-    const result = lookupWithFallback(index, 'كتاب', null);
+  it('returns stem match when found', async () => {
+    const result = await lookupWithFallback(lookup, 'كتاب', null);
     expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.rootWord).toBe('كتب');
     expect(result.entries[0].source).toBe('hw');
   });
 
-  it('falls back to verbStem when stem not found', () => {
-    const result = lookupWithFallback(index, 'تلقب', 'لقب');
+  it('falls back to verbStem when stem not found', async () => {
+    const result = await lookupWithFallback(lookup, 'تلقب', 'لقب');
     expect(result.entries[0].definition).toBe('laqab nickname; title');
     expect(result.rootWord).toBe('لقب');
     expect(result.entries[0].source).toBe('wk');
   });
 
-  it('returns nulls when neither found', () => {
-    const result = lookupWithFallback(index, 'xyz', 'abc');
+  it('returns nulls when neither found', async () => {
+    const result = await lookupWithFallback(lookup, 'xyz', 'abc');
     expect(result.entries).toEqual([]);
     expect(result.rootWord).toBeNull();
   });
@@ -118,45 +79,58 @@ describe('normalizeAlif', () => {
 });
 
 describe('lookupByLemma', () => {
-  const index = buildIndex(sampleEntries);
+  const lookup = createMockLookup(sampleEntries);
 
-  it('finds entry after stripping diacritics', () => {
-    const result = lookupByLemma(index, 'كِتَابٌ');
+  it('finds entry after stripping diacritics', async () => {
+    const result = await lookupByLemma(lookup, 'كِتَابٌ');
     expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.rootWord).toBe('كتب');
     expect(result.entries[0].source).toBe('hw');
   });
 
-  it('returns nulls when lemma not found', () => {
-    const result = lookupByLemma(index, 'مَجْهُول');
+  it('returns nulls when lemma not found', async () => {
+    const result = await lookupByLemma(lookup, 'مَجْهُول');
     expect(result.entries).toEqual([]);
     expect(result.rootWord).toBeNull();
   });
 });
 
 describe('lookupAnalysis', () => {
-  const index = buildIndex(sampleEntries);
+  const lookup = createMockLookup(sampleEntries);
 
-  it('finds by first matching lemma', () => {
-    const result = lookupAnalysis(index, { lemmas: ['مَجْهُول', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
+  it('finds by first matching lemma', async () => {
+    const result = await lookupAnalysis(lookup, { lemmas: ['مَجْهُول', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
     expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.entries[0].source).toBe('hw');
   });
 
-  it('falls back to stem when no lemma matches', () => {
-    const result = lookupAnalysis(index, { lemmas: ['مَجْهُول'], stem: 'درس', verbStem: null });
+  it('falls back to stem when no lemma matches', async () => {
+    const result = await lookupAnalysis(lookup, { lemmas: ['مَجْهُول'], stem: 'درس', verbStem: null });
     expect(result.entries[0].definition).toBe('darasa to study');
     expect(result.entries[0].source).toBe('wk');
   });
 
-  it('tries all lemmas before falling back', () => {
-    const result = lookupAnalysis(index, { lemmas: ['abc', 'def', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
+  it('tries all lemmas before falling back', async () => {
+    const result = await lookupAnalysis(lookup, { lemmas: ['abc', 'def', 'كِتَابٌ'], stem: 'xyz', verbStem: null });
     expect(result.entries[0].definition).toBe('kitāb book; writing');
     expect(result.entries[0].source).toBe('hw');
   });
 
-  it('returns nulls when nothing found', () => {
-    const result = lookupAnalysis(index, { lemmas: [], stem: 'xyz', verbStem: null });
+  it('returns nulls when nothing found', async () => {
+    const result = await lookupAnalysis(lookup, { lemmas: [], stem: 'xyz', verbStem: null });
     expect(result.entries).toEqual([]);
+  });
+});
+
+describe('parseCompactEntry', () => {
+  it('converts tuple to DictEntry', () => {
+    const tuple: CompactEntry = ['كتاب', 'kitāb book', 'كتب', 'hw'];
+    const entry = parseCompactEntry(tuple);
+    expect(entry).toEqual({
+      word: 'كتاب',
+      definition: 'kitāb book',
+      rootWord: 'كتب',
+      source: 'hw',
+    });
   });
 });

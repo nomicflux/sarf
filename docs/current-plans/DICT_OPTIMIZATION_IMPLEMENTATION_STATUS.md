@@ -14,8 +14,23 @@
 - Typecheck clean
 - Compact file generated and smaller than originals
 
-## Phase 2: IndexedDB Dictionary Store + Async Lookup Layer
-**Status**: Pending
+## Phase 2: IndexedDB Dictionary Store + Async Lookup Layer ✅
+
+**Status**: Complete
+
+### Deliverables
+- `extension/lib/dict-store.ts` — IndexedDB wrapper (openDictDb, isDictPopulated, populateDict, queryByWord, parseCompactEntry)
+- `extension/lib/dictionary.ts` — simplified DictEntry (rootWord instead of id/parentId/isRoot), async lookup functions
+- `extension/entrypoints/background.ts` — ensureDictReady() with IndexedDB, async enrichWithDictionary
+- `extension/lib/__tests__/dictionary.test.ts` — rewritten with mock lookup function
+
+### Removed
+- `DictIndex`, `buildIndex`, `lookupWord`, `findRootEntry`, `lookupDefinition`, `lookupRootWord`, `lookupAllWords`
+- `dictIndex` global, `loadDictionary`, `loadJsonFile` from background.ts
+
+### Verification
+- All 102 tests pass
+- Typecheck clean
 
 ## Phase 3: Cleanup — Remove Old Files and Dead Code
 **Status**: Pending
