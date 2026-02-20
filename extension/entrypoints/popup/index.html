@@ -1,19 +1,18 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <title>Sarf</title>
     <style>
-      body { font-family: system-ui; width: 320px; padding: 16px; }
-      input { direction: rtl; width: 100%; font-size: 16px; padding: 8px; margin-bottom: 8px; }
-      button { width: 100%; padding: 8px; cursor: pointer; }
-      #result { margin-top: 12px; white-space: pre-wrap; direction: rtl; }
+      body { font-family: system-ui; width: 260px; padding: 16px; }
+      h3 { margin: 0 0 12px; }
+      label { display: block; margin-bottom: 8px; cursor: pointer; }
     </style>
   </head>
   <body>
-    <input id="word" type="text" placeholder="أدخل كلمة" />
-    <button id="analyze">حلّل</button>
-    <div id="result"></div>
+    <h3>Sarf — Dictionaries</h3>
+    <label><input type="checkbox" id="hw" /> Hans Wehr</label>
+    <label><input type="checkbox" id="wk" /> Wiktionary</label>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

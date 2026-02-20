@@ -1,14 +1,20 @@
-import { init, analyze_word } from "../../../pkg/sarf_core";
+import { getEnabledDicts, setEnabledDicts, type DictSource } from '../../lib/dict-prefs';
 
 async function setup() {
-  await init();
-  const input = document.getElementById("word") as HTMLInputElement;
-  const button = document.getElementById("analyze") as HTMLButtonElement;
-  const result = document.getElementById("result") as HTMLDivElement;
+  const hwBox = document.getElementById('hw') as HTMLInputElement;
+  const wkBox = document.getElementById('wk') as HTMLInputElement;
+  const enabled = await getEnabledDicts();
+  hwBox.checked = enabled.includes('hw');
+  wkBox.checked = enabled.includes('wk');
 
-  button.addEventListener("click", () => {
-    result.textContent = analyze_word(input.value);
-  });
+  const onChange = () => {
+    const sources: DictSource[] = [];
+    if (hwBox.checked) sources.push('hw');
+    if (wkBox.checked) sources.push('wk');
+    setEnabledDicts(sources);
+  };
+  hwBox.addEventListener('change', onChange);
+  wkBox.addEventListener('change', onChange);
 }
 
 setup();
