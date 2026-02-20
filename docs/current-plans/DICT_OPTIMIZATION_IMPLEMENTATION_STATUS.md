@@ -32,5 +32,16 @@
 - All 102 tests pass
 - Typecheck clean
 
-## Phase 3: Cleanup — Remove Old Files and Dead Code
-**Status**: Pending
+## Phase 3: Cleanup — Remove Old Files and Dead Code ✅
+
+**Status**: Complete
+
+### Deliverables
+- Deleted `extension/public/hanswehr.json` (5.4MB)
+- Deleted `extension/public/wiktionary.json` (5.2MB)
+- No remaining runtime references to old files
+
+### Verification
+- All 102 tests pass
+- Typecheck clean
+- Only `dict-compact.json` (7.1MB) remains as the runtime dictionary
