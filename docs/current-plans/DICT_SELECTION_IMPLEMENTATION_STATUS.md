@@ -23,4 +23,9 @@
   - `extension/entrypoints/background.ts` — integrated enabled dicts filtering + cache clearing on storage change
 
 ## Phase 3: Cleanup — Remove WASM Dependency from Popup
-- **Status**: PENDING
+- **Status**: COMPLETE
+- **Tests**: 110/110 pass
+- **Typecheck**: clean
+- **Files modified**:
+  - `extension/wxt.config.ts` — removed WASM plugins, CSP, web_accessible_resources
+  - `extension/package.json` — removed vite-plugin-wasm and vite-plugin-top-level-await
