@@ -109,7 +109,11 @@ The compact dictionary file (`extension/public/dict-compact.json`) is checked in
 
 1. The **content script** listens for mouse movement over Arabic text on any webpage
 2. When a word is detected, it sends a message to the **background script**
-3. The background script calls the [AlKhalil MorphoSys](http://oujda-nlp-team.net/) API for morphological analysis
+3. The background script calls the [AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php) API for morphological analysis
 4. It then looks up definitions in **IndexedDB** (populated from the bundled compact dictionary on first load)
 5. Results are filtered by the user's dictionary preferences and sent back to the content script
 6. The **tooltip** renders the analysis with color-coded morphemes and expandable definitions
+
+## External Services
+
+**[AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php)** — morphosyntactic analyzer for Standard Arabic, developed by [Université Mohammed Premier](https://www.sciencedirect.com/science/article/pii/S131915781630026X) (Oujda, Morocco). When you hover over an Arabic word, that word is sent to their API for analysis. No other page content is transmitted. The API endpoints are documented on the [MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php) and [RootExtractor](http://alkhalil.oujda-nlp-team.net/AlKhalil-RootExtractor.php) pages.
