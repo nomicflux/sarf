@@ -6,13 +6,18 @@
     <style>
       body { font-family: system-ui; width: 260px; padding: 16px; }
       h3 { margin: 0 0 12px; }
+      h4 { margin: 12px 0 8px; font-size: 13px; color: #555; }
       label { display: block; margin-bottom: 8px; cursor: pointer; }
     </style>
   </head>
   <body>
-    <h3>Sarf — Dictionaries</h3>
+    <h3>Sarf — Settings</h3>
+    <h4>Dictionaries</h4>
     <label><input type="checkbox" id="hw" /> Hans Wehr</label>
     <label><input type="checkbox" id="wk" /> Wiktionary</label>
+    <h4>POS Language</h4>
+    <label><input type="radio" name="posLang" id="posLangEn" value="en" /> English</label>
+    <label><input type="radio" name="posLang" id="posLangAr" value="ar" /> العربية</label>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

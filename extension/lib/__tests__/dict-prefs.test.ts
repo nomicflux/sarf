@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEnabledDicts, setEnabledDicts } from '../dict-prefs';
+import { getEnabledDicts, setEnabledDicts, getPosLanguage, setPosLanguage } from '../dict-prefs';
 
 function mockStorage(data: Record<string, unknown> = {}) {
   const store = { ...data };
@@ -35,5 +35,23 @@ describe('dict-prefs', () => {
     const mock = mockStorage();
     await setEnabledDicts(['wk']);
     expect(mock.set).toHaveBeenCalledWith({ enabledDicts: ['wk'] });
+  });
+
+  it('returns default POS language when storage is empty', async () => {
+    mockStorage();
+    const result = await getPosLanguage();
+    expect(result).toBe('en');
+  });
+
+  it('returns stored POS language when storage has data', async () => {
+    mockStorage({ posLanguage: 'ar' });
+    const result = await getPosLanguage();
+    expect(result).toBe('ar');
+  });
+
+  it('writes POS language to storage', async () => {
+    const mock = mockStorage();
+    await setPosLanguage('ar');
+    expect(mock.set).toHaveBeenCalledWith({ posLanguage: 'ar' });
   });
 });

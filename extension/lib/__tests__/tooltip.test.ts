@@ -18,7 +18,7 @@ describe('renderAnalysis', () => {
       isParticle: true,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-stem');
     expect(html).toContain('في');
     expect(html).toContain('sarf-missing');
@@ -39,7 +39,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-prefix');
     expect(html).toContain('ب');
     expect(html).toContain('ال');
@@ -63,7 +63,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-stem');
     expect(html).toContain('كتاب');
     expect(html).toContain('sarf-suffix');
@@ -85,7 +85,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-stem');
     expect(html).toContain('كتاب');
     expect(html).not.toContain('sarf-separator');
@@ -106,7 +106,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-detail');
     expect(html).toContain('ك ت ب');
   });
@@ -126,7 +126,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-definition');
     expect(html).toContain('book; writing');
     expect(html).toContain('sarf-source');
@@ -148,7 +148,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-missing');
     expect(html).toContain('Root: —');
   });
@@ -168,7 +168,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('No definition found');
     expect(html).toContain('sarf-missing');
   });
@@ -189,7 +189,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('Lemma: <span class="sarf-value">إداري</span>');
     expect(html).toContain('sarf-detail');
   });
@@ -209,11 +209,34 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('POS: <span class="sarf-value">اسم</span> · ');
     expect(html).toContain('نسبة');
     expect(html).toContain('sarf-features');
     expect(html).toContain(' · ');
+  });
+
+  it('renders POS in English when posLang is en', () => {
+    const analysis: MorphAnalysis = {
+      original: 'الإدارية',
+      prefixes: ['ال'],
+      stem: 'إداري',
+      verbStem: null,
+      suffixes: ['ة'],
+      root: 'دور',
+      pattern: null,
+      definitions: [{ word: 'إداري', text: 'administrative', source: '' }],
+      lemmas: ['إداري'],
+      pos: 'اسم|نسبة|مفرد|مؤنث|معرف',
+      isParticle: false,
+      error: null,
+    };
+    const html = renderAnalysis(analysis, 'en');
+    expect(html).toContain('POS: <span class="sarf-value">noun</span> · ');
+    expect(html).toContain('nisba');
+    expect(html).toContain('singular');
+    expect(html).toContain('feminine');
+    expect(html).toContain('definite');
   });
 
   it('renders Hans Wehr source label when present', () => {
@@ -231,7 +254,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('<span class="sarf-source">Hans Wehr</span>');
     expect(html).toContain('book');
   });
@@ -251,7 +274,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('<span class="sarf-source">Wiktionary</span>');
     expect(html).toContain('book');
   });
@@ -271,7 +294,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('sarf-divider');
   });
 
@@ -290,7 +313,7 @@ describe('renderAnalysis', () => {
       isParticle: false,
       error: null,
     };
-    const html = renderAnalysis(analysis);
+    const html = renderAnalysis(analysis, 'ar');
     expect(html).toContain('<span class="sarf-def-word">كتاب</span>');
   });
 });

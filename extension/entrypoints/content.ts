@@ -3,6 +3,7 @@ import { containsArabic, extractWordAtOffset } from '../lib/arabic';
 import { createTooltipElement, showTooltip, hideTooltip, pinTooltip, unpinTooltip, isPinned } from '../lib/tooltip';
 import { getTextAtPoint } from '../lib/hit-test';
 import { debounce } from '../lib/debounce';
+import { getPosLanguage, type PosLanguage } from '../lib/dict-prefs';
 import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
 
 export default defineContentScript({
@@ -10,6 +11,11 @@ export default defineContentScript({
   main(ctx) {
     const tooltip = createTooltipElement();
     let lastWord: string | null = null;
+    let posLang: PosLanguage = 'en';
+    getPosLanguage().then(lang => { posLang = lang; });
+    chrome.storage.onChanged.addListener((changes) => {
+      if (changes['posLanguage']) posLang = changes['posLanguage'].newValue as PosLanguage;
+    });
 
     const onMouseMove = debounce((event: MouseEvent) => {
       if (isPinned(tooltip)) return;
@@ -28,7 +34,7 @@ export default defineContentScript({
     function analyzeAndShow(word: string, x: number, y: number): void {
       const message: AnalyzeRequest = { type: 'analyze', word };
       chrome.runtime.sendMessage(message, (response: MorphAnalysis) => {
-        showTooltip(tooltip, x, y, response);
+        showTooltip(tooltip, x, y, response, posLang);
       });
     }
 

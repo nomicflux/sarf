@@ -1,4 +1,5 @@
 import type { MorphAnalysis } from './types';
+import { translatePos, type PosLanguage } from './pos-translate';
 
 const MAX_DEF_LENGTH = 200;
 
@@ -58,11 +59,12 @@ export function splitPos(pos: string): { tag: string; features: string[] } {
   return { tag: parts[0], features: parts.slice(1) };
 }
 
-function renderPos(pos: string | null): string {
+function renderPos(pos: string | null, lang: PosLanguage): string {
   if (!pos) return '';
   const { tag, features } = splitPos(pos);
-  const feats = features.length > 0 ? ` · <span class="sarf-features">${features.join(' · ')}</span>` : '';
-  return `<div class="sarf-detail">POS: <span class="sarf-value">${tag}</span>${feats}</div>`;
+  const translated = translatePos(tag, features, lang);
+  const feats = translated.features.length > 0 ? ` · <span class="sarf-features">${translated.features.join(' · ')}</span>` : '';
+  return `<div class="sarf-detail">POS: <span class="sarf-value">${translated.tag}</span>${feats}</div>`;
 }
 
 function renderError(error: string | null): string {
@@ -78,7 +80,7 @@ export function attachEllipsisHandlers(container: HTMLElement): void {
   });
 }
 
-export function renderAnalysis(analysis: MorphAnalysis): string {
+export function renderAnalysis(analysis: MorphAnalysis, posLang: PosLanguage): string {
   if (analysis.error) return renderError(analysis.error);
   const parts: string[] = [];
   analysis.prefixes.forEach((p) => parts.push(`<span class="sarf-prefix">${p}</span>`));
@@ -87,7 +89,7 @@ export function renderAnalysis(analysis: MorphAnalysis): string {
   let html = parts.join('<span class="sarf-separator"> + </span>');
   html += renderLemmas(analysis.lemmas);
   html += renderRoot(analysis.root);
-  html += renderPos(analysis.pos);
+  html += renderPos(analysis.pos, posLang);
   if (analysis.pattern) {
     html += `<div class="sarf-detail">Pattern: <span class="sarf-value">${analysis.pattern}</span></div>`;
   }
@@ -101,8 +103,9 @@ export function showTooltip(
   x: number,
   y: number,
   analysis: MorphAnalysis,
+  posLang: PosLanguage,
 ): void {
-  el.innerHTML = renderAnalysis(analysis);
+  el.innerHTML = renderAnalysis(analysis, posLang);
   attachEllipsisHandlers(el);
   el.classList.add('sarf-visible');
   const pos = clampPosition(x, y, window.innerWidth, window.innerHeight, el.offsetWidth, el.offsetHeight);
