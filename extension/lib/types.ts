@@ -12,10 +12,3 @@ export interface MorphAnalysis {
   isParticle: boolean;
   error: string | null;
 }
-
-export interface AnalyzeRequest {
-  type: "analyze";
-  word: string;
-}
-
-export type AnalyzeResponse = MorphAnalysis;

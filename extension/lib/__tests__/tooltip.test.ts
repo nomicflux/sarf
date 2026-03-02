@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderAnalysis, clampPosition, renderDefinitions, truncateDefinition, pinTooltip, unpinTooltip, isPinned, hideTooltip, splitPos } from '../tooltip';
+import { renderAnalysis, clampPosition, renderDefinitions, truncateDefinition, pinTooltip, unpinTooltip, isPinned, hideTooltip, splitPos, renderMorphHtml, renderLoadingHtml, updateTooltipMorph, updateTooltipDict, showLoadingTooltip } from '../tooltip';
 import type { MorphAnalysis } from '../types';
 
 describe('renderAnalysis', () => {
@@ -467,5 +467,91 @@ describe('splitPos', () => {
     const result = splitPos('فعل');
     expect(result.tag).toBe('فعل');
     expect(result.features).toEqual([]);
+  });
+});
+
+describe('renderMorphHtml', () => {
+  it('renders morph without definitions or divider', () => {
+    const analysis = {
+      original: 'كتاب', prefixes: [], stem: 'كتاب', verbStem: null,
+      suffixes: [], root: 'ك ت ب', pattern: null,
+      lemmas: [], pos: null, isParticle: false, error: null,
+    };
+    const html = renderMorphHtml(analysis, 'ar');
+    expect(html).toContain('sarf-stem');
+    expect(html).toContain('ك ت ب');
+    expect(html).not.toContain('sarf-divider');
+    expect(html).not.toContain('sarf-definition');
+  });
+
+  it('renders error when present', () => {
+    const analysis = {
+      original: 'test', prefixes: [], stem: 'test', verbStem: null,
+      suffixes: [], root: null, pattern: null,
+      lemmas: [], pos: null, isParticle: false, error: 'API failed',
+    };
+    const html = renderMorphHtml(analysis, 'ar');
+    expect(html).toContain('sarf-error');
+    expect(html).toContain('API failed');
+  });
+});
+
+describe('renderLoadingHtml', () => {
+  it('renders loading sections with data-section attributes', () => {
+    const html = renderLoadingHtml();
+    expect(html).toContain('data-section="morph"');
+    expect(html).toContain('data-section="dict"');
+    expect(html).toContain('sarf-loading');
+    expect(html).toContain('Loading…');
+    expect(html).toContain('sarf-divider');
+  });
+});
+
+describe('showLoadingTooltip', () => {
+  it('sets loading HTML and makes tooltip visible', () => {
+    const el = document.createElement('div');
+    el.className = 'sarf-tooltip';
+    document.body.appendChild(el);
+    showLoadingTooltip(el, 100, 100);
+    expect(el.classList.contains('sarf-visible')).toBe(true);
+    expect(el.innerHTML).toContain('sarf-loading');
+    expect(el.innerHTML).toContain('data-section="morph"');
+    document.body.removeChild(el);
+  });
+});
+
+describe('updateTooltipMorph', () => {
+  it('replaces morph section content', () => {
+    const el = document.createElement('div');
+    el.innerHTML = '<div data-section="morph"><span class="sarf-loading">Loading…</span></div>';
+    const analysis = {
+      original: 'كتاب', prefixes: [], stem: 'كتاب', verbStem: null,
+      suffixes: [], root: 'ك ت ب', pattern: null,
+      lemmas: [], pos: null, isParticle: false, error: null,
+    };
+    updateTooltipMorph(el as HTMLDivElement, analysis, 'ar');
+    expect(el.querySelector('[data-section="morph"]')?.innerHTML).toContain('sarf-stem');
+    expect(el.querySelector('[data-section="morph"]')?.innerHTML).not.toContain('sarf-loading');
+  });
+});
+
+describe('updateTooltipDict', () => {
+  it('replaces dict section with definitions', () => {
+    const el = document.createElement('div');
+    el.innerHTML = '<div data-section="dict"><span class="sarf-loading">Loading…</span></div>';
+    const defs = [{ word: 'كتاب', text: 'book', source: 'hw' }];
+    updateTooltipDict(el as HTMLDivElement, defs, null);
+    expect(el.querySelector('[data-section="dict"]')?.innerHTML).toContain('book');
+    expect(el.querySelector('[data-section="dict"]')?.innerHTML).not.toContain('sarf-loading');
+  });
+
+  it('updates root when previously missing', () => {
+    const el = document.createElement('div');
+    el.innerHTML = '<div data-section="morph"><div class="sarf-detail sarf-missing">Root: —</div></div>'
+      + '<div data-section="dict"><span class="sarf-loading">Loading…</span></div>';
+    updateTooltipDict(el as HTMLDivElement, [], 'ك ت ب');
+    expect(el.innerHTML).toContain('ك ت ب');
+    const morphSection = el.querySelector('[data-section="morph"]');
+    expect(morphSection?.querySelector('.sarf-missing')).toBeNull();
   });
 });

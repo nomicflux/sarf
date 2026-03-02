@@ -123,3 +123,15 @@
 .sarf-tooltip.sarf-pinned {
   pointer-events: auto;
 }
+
+.sarf-loading {
+  color: #888;
+  font-size: 12px;
+  font-style: italic;
+  animation: sarf-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes sarf-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}

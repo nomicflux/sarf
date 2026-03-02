@@ -1,4 +1,4 @@
-import type { AnalyzeRequest, MorphAnalysis } from '../lib/types';
+import type { MorphAnalysis } from '../lib/types';
 import { fetchMorphoSys } from '../lib/alkhalil';
 import type { MorphoSysAnalysis } from '../lib/alkhalil';
 import { withTimeout } from '../lib/timeout';
@@ -8,6 +8,8 @@ import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/d
 import type { CompactEntry } from '../lib/dict-store';
 import { getEnabledDicts } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
+import { isAnalyzePortMessage } from '../lib/stream-types';
+import type { StreamMessage } from '../lib/stream-types';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
 let db: IDBDatabase | null = null;
@@ -28,13 +30,13 @@ export default defineBackground({
   main() {
     ensureDictReady();
 
-    chrome.runtime.onMessage.addListener(
-      (message: unknown, _sender, sendResponse) => {
-        if (!isAnalyzeRequest(message)) return;
-        handleAnalyze(message.word, sendResponse);
-        return true;
-      }
-    );
+    chrome.runtime.onConnect.addListener((port) => {
+      if (port.name !== 'sarf') return;
+      port.onMessage.addListener((msg: unknown) => {
+        if (!isAnalyzePortMessage(msg)) return;
+        handleStreamAnalyze(msg.word, port);
+      });
+    });
 
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.enabledDicts) cache.clear();
@@ -42,22 +44,23 @@ export default defineBackground({
   },
 });
 
-function isAnalyzeRequest(msg: unknown): msg is AnalyzeRequest {
-  return typeof msg === 'object' && msg !== null && (msg as AnalyzeRequest).type === 'analyze';
+function portSend(port: chrome.runtime.Port, msg: StreamMessage): void {
+  try { port.postMessage(msg); } catch { /* port disconnected */ }
 }
 
-async function handleAnalyze(
-  word: string,
-  sendResponse: (response: MorphAnalysis) => void,
+async function handleStreamAnalyze(
+  word: string, port: chrome.runtime.Port,
 ): Promise<void> {
   const cached = cache.get(word);
-  if (cached) return sendResponse(cached);
+  if (cached) return portSend(port, { type: 'cached', data: cached });
 
   const { results, error } = await fetchMorphoSysSafe(word);
   const analysis = morphoSysToAnalysis(word, results, error);
+  portSend(port, { type: 'morph', data: analysis });
+
   const withDict = await enrichWithDictionary(analysis);
   cache.set(word, withDict);
-  sendResponse(withDict);
+  portSend(port, { type: 'dict', definitions: withDict.definitions, root: withDict.root });
 }
 
 async function fetchMorphoSysSafe(

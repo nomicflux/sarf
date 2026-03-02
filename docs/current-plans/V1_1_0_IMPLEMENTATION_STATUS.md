@@ -19,7 +19,21 @@
 **Verification:** 121 tests pass, 0 type errors
 
 ## Phase 2: Progressive Rendering via Port Streaming
-**Status**: PENDING
+**Status**: COMPLETE
+
+**Files Created:**
+- `extension/lib/stream-types.ts` -- StreamMessage union type, AnalyzePortMessage, PartialMorph, isAnalyzePortMessage type guard
+- `extension/lib/__tests__/stream-types.test.ts` -- 4 tests for type guard
+
+**Files Modified:**
+- `extension/lib/types.ts` -- removed unused AnalyzeRequest/AnalyzeResponse (replaced by stream-types)
+- `extension/lib/tooltip.ts` -- extracted renderMorphHtml, added renderLoadingHtml, showLoadingTooltip, updateTooltipMorph, updateTooltipDict
+- `extension/lib/__tests__/tooltip.test.ts` -- 7 new tests for progressive rendering functions
+- `extension/entrypoints/background.ts` -- replaced onMessage with onConnect port-based streaming (morph → dict messages)
+- `extension/entrypoints/content.ts` -- replaced sendMessage with port client, progressive tooltip updates
+- `extension/assets/tooltip.css` -- added .sarf-loading pulse animation
+
+**Verification:** 132 tests pass, 0 type errors
 
 ## Phase 3: Version Bump to 1.1.0
 **Status**: PENDING
