@@ -40,22 +40,35 @@ export function compactDictionary(entries: OldDictEntry[], source: string): Comp
   return entries.map((entry) => compactEntry(entry, rootWords, source));
 }
 
+export function readAndCompact(filePath: string, source: string): CompactEntry[] {
+  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as OldDictEntry[];
+  return compactDictionary(data, source);
+}
+
 if (require.main === module) {
   const hanswehrPath = path.join(__dirname, '../extension/public/hanswehr.json');
   const wiktionaryPath = path.join(__dirname, '../extension/public/wiktionary.json');
   const outputPath = path.join(__dirname, '../extension/public/dict-compact.json');
+  const DIALECT_FILES = [
+    { file: 'wiktionary-egy.json', source: 'wk-egy' },
+    { file: 'wiktionary-lev.json', source: 'wk-lev' },
+    { file: 'wiktionary-gulf.json', source: 'wk-gulf' },
+  ];
 
-  const hanswehrData = JSON.parse(fs.readFileSync(hanswehrPath, 'utf-8')) as OldDictEntry[];
-  const wiktionaryData = JSON.parse(fs.readFileSync(wiktionaryPath, 'utf-8')) as OldDictEntry[];
-
-  const wiktionaryCompact = compactDictionary(wiktionaryData, 'wk');
-  const hanswehrCompact = compactDictionary(hanswehrData, 'hw');
+  const wiktionaryCompact = readAndCompact(wiktionaryPath, 'wk');
+  const hanswehrCompact = readAndCompact(hanswehrPath, 'hw');
 
   const combined = [...wiktionaryCompact, ...hanswehrCompact];
 
-  const hanswehrSize = fs.statSync(hanswehrPath).size;
-  const wiktionarySize = fs.statSync(wiktionaryPath).size;
-  const totalBefore = hanswehrSize + wiktionarySize;
+  let totalBefore = fs.statSync(hanswehrPath).size + fs.statSync(wiktionaryPath).size;
+
+  for (const { file, source } of DIALECT_FILES) {
+    const filePath = path.join(__dirname, '../extension/public/', file);
+    if (fs.existsSync(filePath)) {
+      combined.push(...readAndCompact(filePath, source as any));
+      totalBefore += fs.statSync(filePath).size;
+    }
+  }
 
   fs.writeFileSync(outputPath, JSON.stringify(combined));
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEnabledDicts, setEnabledDicts, getPosLanguage, setPosLanguage } from '../dict-prefs';
+import { getEnabledDicts, setEnabledDicts, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS } from '../dict-prefs';
 
 function mockStorage(data: Record<string, unknown> = {}) {
   const store = { ...data };
@@ -53,5 +53,17 @@ describe('dict-prefs', () => {
     const mock = mockStorage();
     await setPosLanguage('ar');
     expect(mock.set).toHaveBeenCalledWith({ posLanguage: 'ar' });
+  });
+
+  it('DIALECT_SOURCES contains dialect codes', () => {
+    expect(DIALECT_SOURCES).toEqual(['wk-egy', 'wk-lev', 'wk-gulf']);
+  });
+
+  it('DICT_LABELS has label for every source', () => {
+    const allSources: Array<'hw' | 'wk' | 'wk-egy' | 'wk-lev' | 'wk-gulf'> = ['hw', 'wk', 'wk-egy', 'wk-lev', 'wk-gulf'];
+    for (const source of allSources) {
+      expect(DICT_LABELS[source]).toBeDefined();
+      expect(typeof DICT_LABELS[source]).toBe('string');
+    }
   });
 });

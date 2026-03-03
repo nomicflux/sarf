@@ -13,7 +13,13 @@ Adding Arabic dialect dictionary support (Egyptian, Levantine, Gulf) to Sarf.
   - 134/134 tests pass
 
 ## Phase 2: Expand DictSource and Compact Pipeline
-- **Status**: PENDING
+- **Status**: COMPLETE
+- **Notes**:
+  - DictSource expanded: `'hw' | 'wk' | 'wk-egy' | 'wk-lev' | 'wk-gulf'`
+  - Added DIALECT_SOURCES, DICT_LABELS exports
+  - compact-dictionaries.ts now includes dialect files when present (skips if missing)
+  - Added readAndCompact helper function
+  - 2 new tests, 136/136 total pass
 
 ## Phase 3: Popup UI -- Dialect Dropdown and Dictionary Checkboxes
 - **Status**: PENDING
