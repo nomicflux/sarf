@@ -6,7 +6,21 @@ const DEFAULT_SOURCES: DictSource[] = ['hw', 'wk'];
 const POS_LANG_KEY = 'posLanguage';
 const DEFAULT_POS_LANG: PosLanguage = 'en';
 
-export const DIALECT_SOURCES: DictSource[] = ['wk-egy', 'wk-lev', 'wk-gulf'];
+export type Dialect = 'egy' | 'lev' | 'gulf';
+
+export const DIALECT_LABELS: Record<Dialect, string> = {
+  'egy': 'Egyptian',
+  'lev': 'Levantine',
+  'gulf': 'Gulf',
+};
+
+export const DIALECT_DICTS: Record<Dialect, DictSource[]> = {
+  'egy': ['wk-egy'],
+  'lev': ['wk-lev'],
+  'gulf': ['wk-gulf'],
+};
+
+export const DIALECT_SOURCES: DictSource[] = Object.values(DIALECT_DICTS).flat();
 
 export const DICT_LABELS: Record<DictSource, string> = {
   'hw': 'Hans Wehr',
@@ -36,12 +50,12 @@ export async function setPosLanguage(lang: PosLanguage): Promise<void> {
 
 const DIALECT_KEY = 'dialect';
 
-export async function getDialect(): Promise<DictSource | null> {
+export async function getDialect(): Promise<Dialect | null> {
   const result = await chrome.storage.local.get(DIALECT_KEY);
-  return (result[DIALECT_KEY] as DictSource | undefined) ?? null;
+  return (result[DIALECT_KEY] as Dialect | undefined) ?? null;
 }
 
-export async function setDialect(dialect: DictSource | null): Promise<void> {
+export async function setDialect(dialect: Dialect | null): Promise<void> {
   await chrome.storage.local.set({ [DIALECT_KEY]: dialect });
 }
 

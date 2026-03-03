@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS } from '../dict-prefs';
+import { getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS, DIALECT_LABELS, DIALECT_DICTS } from '../dict-prefs';
 
 function mockStorage(data: Record<string, unknown> = {}) {
   const store = { ...data };
@@ -74,20 +74,37 @@ describe('dict-prefs', () => {
   });
 
   it('returns stored dialect when storage has data', async () => {
-    mockStorage({ dialect: 'wk-egy' });
+    mockStorage({ dialect: 'egy' });
     const result = await getDialect();
-    expect(result).toBe('wk-egy');
+    expect(result).toBe('egy');
   });
 
   it('writes dialect to storage', async () => {
     const mock = mockStorage();
-    await setDialect('wk-lev');
-    expect(mock.set).toHaveBeenCalledWith({ dialect: 'wk-lev' });
+    await setDialect('lev');
+    expect(mock.set).toHaveBeenCalledWith({ dialect: 'lev' });
   });
 
   it('writes null dialect to storage', async () => {
     const mock = mockStorage();
     await setDialect(null);
     expect(mock.set).toHaveBeenCalledWith({ dialect: null });
+  });
+
+  it('DIALECT_LABELS has a label for every dialect', () => {
+    for (const key of ['egy', 'lev', 'gulf'] as const) {
+      expect(typeof DIALECT_LABELS[key]).toBe('string');
+    }
+  });
+
+  it('DIALECT_DICTS maps every dialect to at least one DictSource', () => {
+    for (const key of ['egy', 'lev', 'gulf'] as const) {
+      expect(DIALECT_DICTS[key].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('DIALECT_SOURCES equals flattened DIALECT_DICTS values', () => {
+    const flattened = Object.values(DIALECT_DICTS).flat();
+    expect(DIALECT_SOURCES).toEqual(flattened);
   });
 });
