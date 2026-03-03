@@ -55,17 +55,18 @@ if (require.main === module) {
     { file: 'wiktionary-gulf.json', source: 'wk-gulf' },
   ];
 
-  const wiktionaryCompact = readAndCompact(wiktionaryPath, 'wk');
   const hanswehrCompact = readAndCompact(hanswehrPath, 'hw');
+  const combined = [...hanswehrCompact];
+  let totalBefore = fs.statSync(hanswehrPath).size;
 
-  const combined = [...wiktionaryCompact, ...hanswehrCompact];
+  const OPTIONAL_FILES = [
+    { path: wiktionaryPath, source: 'wk' },
+    ...DIALECT_FILES.map(d => ({ path: path.join(__dirname, '../extension/public/', d.file), source: d.source })),
+  ];
 
-  let totalBefore = fs.statSync(hanswehrPath).size + fs.statSync(wiktionaryPath).size;
-
-  for (const { file, source } of DIALECT_FILES) {
-    const filePath = path.join(__dirname, '../extension/public/', file);
+  for (const { path: filePath, source } of OPTIONAL_FILES) {
     if (fs.existsSync(filePath)) {
-      combined.push(...readAndCompact(filePath, source as any));
+      combined.push(...readAndCompact(filePath, source));
       totalBefore += fs.statSync(filePath).size;
     }
   }
