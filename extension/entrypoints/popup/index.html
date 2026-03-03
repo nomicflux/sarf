@@ -8,14 +8,22 @@
       h3 { margin: 0 0 12px; }
       h4 { margin: 12px 0 8px; font-size: 13px; color: #555; }
       label { display: block; margin-bottom: 8px; cursor: pointer; }
+      select { width: 100%; padding: 4px; margin-bottom: 8px; }
     </style>
   </head>
   <body>
     <h3>Sarf — Settings</h3>
     <h4>Dictionaries</h4>
     <label><input type="checkbox" id="hw" /> Hans Wehr</label>
-    <label><input type="checkbox" id="wk" /> Wiktionary</label>
-    <h4>POS Language</h4>
+    <label><input type="checkbox" id="wk" /> Wiktionary (MSA)</label>
+    <h4>Dialect</h4>
+    <select id="dialect">
+      <option value="">None</option>
+      <option value="wk-egy">Egyptian</option>
+      <option value="wk-lev">Levantine</option>
+      <option value="wk-gulf">Gulf</option>
+    </select>
+    <h4>Part of Speech Language</h4>
     <label><input type="radio" name="posLang" id="posLangEn" value="en" /> English</label>
     <label><input type="radio" name="posLang" id="posLangAr" value="ar" /> العربية</label>
     <script type="module" src="./main.ts"></script>

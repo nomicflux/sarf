@@ -34,4 +34,15 @@ export async function setPosLanguage(lang: PosLanguage): Promise<void> {
   await chrome.storage.local.set({ [POS_LANG_KEY]: lang });
 }
 
+const DIALECT_KEY = 'dialect';
+
+export async function getDialect(): Promise<DictSource | null> {
+  const result = await chrome.storage.local.get(DIALECT_KEY);
+  return (result[DIALECT_KEY] as DictSource | undefined) ?? null;
+}
+
+export async function setDialect(dialect: DictSource | null): Promise<void> {
+  await chrome.storage.local.set({ [DIALECT_KEY]: dialect });
+}
+
 export type { PosLanguage };

@@ -22,4 +22,11 @@ Adding Arabic dialect dictionary support (Egyptian, Levantine, Gulf) to Sarf.
   - 2 new tests, 136/136 total pass
 
 ## Phase 3: Popup UI -- Dialect Dropdown and Dictionary Checkboxes
-- **Status**: PENDING
+- **Status**: COMPLETE
+- **Notes**:
+  - Added getDialect/setDialect to dict-prefs.ts
+  - Popup now shows dialect dropdown (None / Egyptian / Levantine / Gulf)
+  - Wiktionary checkbox label updated to "Wiktionary (MSA)"
+  - background.ts combines enabledDicts + dialect into effective source list
+  - Cache clears on dialect change
+  - 4 new tests for getDialect/setDialect, 140/140 total pass

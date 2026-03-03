@@ -6,7 +6,7 @@ import { createCache } from '../lib/cache';
 import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
 import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
 import type { CompactEntry } from '../lib/dict-store';
-import { getEnabledDicts } from '../lib/dict-prefs';
+import { getEnabledDicts, getDialect } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
 import { isAnalyzePortMessage } from '../lib/stream-types';
 import type { StreamMessage } from '../lib/stream-types';
@@ -39,7 +39,7 @@ export default defineBackground({
     });
 
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.enabledDicts) cache.clear();
+      if (changes.enabledDicts || changes.dialect) cache.clear();
     });
   },
 });
@@ -76,7 +76,8 @@ async function fetchMorphoSysSafe(
 }
 
 async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
-  const enabledSources = await getEnabledDicts();
+  const [enabledDicts, dialect] = await Promise.all([getEnabledDicts(), getDialect()]);
+  const enabledSources = dialect ? [...enabledDicts, dialect] : enabledDicts;
   if (enabledSources.length === 0) return { ...analysis, definitions: [] };
   const database = await ensureDictReady();
   const lookup = (word: string) => queryByWord(database, word);

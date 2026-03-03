@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEnabledDicts, setEnabledDicts, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS } from '../dict-prefs';
+import { getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS } from '../dict-prefs';
 
 function mockStorage(data: Record<string, unknown> = {}) {
   const store = { ...data };
@@ -65,5 +65,29 @@ describe('dict-prefs', () => {
       expect(DICT_LABELS[source]).toBeDefined();
       expect(typeof DICT_LABELS[source]).toBe('string');
     }
+  });
+
+  it('returns null dialect when storage is empty', async () => {
+    mockStorage();
+    const result = await getDialect();
+    expect(result).toBeNull();
+  });
+
+  it('returns stored dialect when storage has data', async () => {
+    mockStorage({ dialect: 'wk-egy' });
+    const result = await getDialect();
+    expect(result).toBe('wk-egy');
+  });
+
+  it('writes dialect to storage', async () => {
+    const mock = mockStorage();
+    await setDialect('wk-lev');
+    expect(mock.set).toHaveBeenCalledWith({ dialect: 'wk-lev' });
+  });
+
+  it('writes null dialect to storage', async () => {
+    const mock = mockStorage();
+    await setDialect(null);
+    expect(mock.set).toHaveBeenCalledWith({ dialect: null });
   });
 });
