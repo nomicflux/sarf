@@ -52,7 +52,8 @@ const DIALECT_KEY = 'dialect';
 
 export async function getDialect(): Promise<Dialect | null> {
   const result = await chrome.storage.local.get(DIALECT_KEY);
-  return (result[DIALECT_KEY] as Dialect | undefined) ?? null;
+  const value = result[DIALECT_KEY] as string | undefined;
+  return value && value in DIALECT_LABELS ? (value as Dialect) : null;
 }
 
 export async function setDialect(dialect: Dialect | null): Promise<void> {

@@ -79,6 +79,12 @@ describe('dict-prefs', () => {
     expect(result).toBe('egy');
   });
 
+  it('returns null for stale dialect value', async () => {
+    mockStorage({ dialect: 'wk-egy' });
+    const result = await getDialect();
+    expect(result).toBeNull();
+  });
+
   it('writes dialect to storage', async () => {
     const mock = mockStorage();
     await setDialect('lev');
