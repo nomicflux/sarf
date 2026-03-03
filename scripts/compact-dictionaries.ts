@@ -45,37 +45,42 @@ export function readAndCompact(filePath: string, source: string): CompactEntry[]
   return compactDictionary(data, source);
 }
 
+export function filterOutSources(entries: CompactEntry[], sourcesToRemove: string[]): CompactEntry[] {
+  return entries.filter(entry => !sourcesToRemove.includes(entry[3]));
+}
+
 if (require.main === module) {
-  const hanswehrPath = path.join(__dirname, '../extension/public/hanswehr.json');
-  const wiktionaryPath = path.join(__dirname, '../extension/public/wiktionary.json');
-  const outputPath = path.join(__dirname, '../extension/public/dict-compact.json');
+  const publicDir = path.join(__dirname, '../extension/public');
+  const compactPath = path.join(publicDir, 'dict-compact.json');
+
   const DIALECT_FILES = [
     { file: 'wiktionary-egy.json', source: 'wk-egy' },
     { file: 'wiktionary-lev.json', source: 'wk-lev' },
     { file: 'wiktionary-gulf.json', source: 'wk-gulf' },
   ];
 
-  const hanswehrCompact = readAndCompact(hanswehrPath, 'hw');
-  const combined = [...hanswehrCompact];
-  let totalBefore = fs.statSync(hanswehrPath).size;
+  const dialectSources = DIALECT_FILES.map(d => d.source);
 
-  const OPTIONAL_FILES = [
-    { path: wiktionaryPath, source: 'wk' },
-    ...DIALECT_FILES.map(d => ({ path: path.join(__dirname, '../extension/public/', d.file), source: d.source })),
-  ];
+  // Read existing compact data (has hw + wk already)
+  const existing = JSON.parse(fs.readFileSync(compactPath, 'utf-8')) as CompactEntry[];
 
-  for (const { path: filePath, source } of OPTIONAL_FILES) {
-    if (fs.existsSync(filePath)) {
-      combined.push(...readAndCompact(filePath, source));
-      totalBefore += fs.statSync(filePath).size;
-    }
+  // Remove any old dialect entries so this script is re-runnable
+  const base = filterOutSources(existing, dialectSources);
+
+  // Compact each dialect file and append
+  const dialectEntries: CompactEntry[] = [];
+  for (const { file, source } of DIALECT_FILES) {
+    const filePath = path.join(publicDir, file);
+    dialectEntries.push(...readAndCompact(filePath, source));
   }
 
-  fs.writeFileSync(outputPath, JSON.stringify(combined));
+  const combined = [...base, ...dialectEntries];
 
-  const outputSize = fs.statSync(outputPath).size;
+  fs.writeFileSync(compactPath, JSON.stringify(combined));
 
-  console.log(`Before: ${(totalBefore / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`After: ${(outputSize / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`Combined ${combined.length} entries`);
+  const outputSize = fs.statSync(compactPath).size;
+  console.log(`Base entries (hw + wk): ${base.length}`);
+  console.log(`Dialect entries added: ${dialectEntries.length}`);
+  console.log(`Total: ${combined.length}`);
+  console.log(`File size: ${(outputSize / 1024 / 1024).toFixed(2)} MB`);
 }

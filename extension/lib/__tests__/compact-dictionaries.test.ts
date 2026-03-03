@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveRootWords, compactEntry, compactDictionary, type CompactEntry } from '../../../scripts/compact-dictionaries';
+import { resolveRootWords, compactEntry, compactDictionary, filterOutSources, type CompactEntry } from '../../../scripts/compact-dictionaries';
 
 interface OldDictEntry {
   id: number;
@@ -81,6 +81,21 @@ describe('compact-dictionaries', () => {
       expect(result[0][2]).toBe('كتب');
       expect(result[1][2]).toBe('كتب');
       expect(result[2][2]).toBe('كتب');
+    });
+  });
+
+  describe('filterOutSources', () => {
+    it('removes entries matching specified sources', () => {
+      const entries: CompactEntry[] = [
+        ['كتب', 'to write', 'كتب', 'hw'],
+        ['كتاب', 'book', 'كتب', 'wk-egy'],
+        ['مكتبة', 'library', 'كتب', 'wk'],
+      ];
+      const result = filterOutSources(entries, ['wk-egy']);
+      expect(result).toEqual([
+        ['كتب', 'to write', 'كتب', 'hw'],
+        ['مكتبة', 'library', 'كتب', 'wk'],
+      ]);
     });
   });
 });
