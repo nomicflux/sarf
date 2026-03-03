@@ -1,0 +1,5 @@
+camel-tools
+fastapi
+uvicorn[standard]
+pytest
+httpx
