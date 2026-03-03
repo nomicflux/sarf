@@ -12,6 +12,7 @@
     "zip:firefox": "wxt zip -b firefox",
     "postinstall": "wxt prepare",
     "build:wiktionary": "npx tsx ../scripts/build-wiktionary.ts",
+    "build:dialects": "npx tsx ../scripts/build-dialect-wiktionary.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
