@@ -5,10 +5,10 @@ import {
 } from '../../lib/dict-prefs';
 
 function getVisibleSources(dialect: DictSource | null): DictSource[] {
-  const base = (Object.keys(DICT_LABELS) as DictSource[]).filter(
+  if (dialect) return [dialect];
+  return (Object.keys(DICT_LABELS) as DictSource[]).filter(
     (s) => !DIALECT_SOURCES.includes(s),
   );
-  return dialect ? [...base, dialect] : base;
 }
 
 function buildCheckboxes(container: HTMLElement, visible: DictSource[], enabled: DictSource[]): void {
