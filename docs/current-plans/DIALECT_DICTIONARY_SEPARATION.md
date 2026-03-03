@@ -20,4 +20,11 @@ Separate the concept of "dialect" from "dictionary source" so the popup dropdown
 - Dialect change handler uses `DIALECT_DICTS[newDialect]` to spread dict sources
 - All 144 tests pass
 
-## Phase 3: Clean up and verify end-to-end — PENDING
+## Phase 3: Clean up and verify end-to-end — COMPLETE
+- All 144 tests pass
+- TypeScript compiles with no errors
+- All `wk-egy`/`wk-lev`/`wk-gulf` references are in correct locations only (DictSource type, DIALECT_DICTS mapping, DICT_LABELS, dictionary data)
+- No stale dialect references in popup code
+
+## Storage Migration Note
+Stored `dialect` value changed from `'wk-egy'` to `'egy'`. Existing users with stale values silently fall back to MSA (null default). No migration code needed.
