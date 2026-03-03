@@ -4,12 +4,16 @@ import {
   DICT_LABELS, DIALECT_SOURCES,
 } from '../../lib/dict-prefs';
 
-function buildCheckboxes(container: HTMLElement, enabled: DictSource[]): void {
-  const sources = Object.keys(DICT_LABELS).filter(
-    (s) => !DIALECT_SOURCES.includes(s as DictSource),
-  ) as DictSource[];
+function getVisibleSources(dialect: DictSource | null): DictSource[] {
+  const base = (Object.keys(DICT_LABELS) as DictSource[]).filter(
+    (s) => !DIALECT_SOURCES.includes(s),
+  );
+  return dialect ? [...base, dialect] : base;
+}
 
-  for (const source of sources) {
+function buildCheckboxes(container: HTMLElement, visible: DictSource[], enabled: DictSource[]): void {
+  container.innerHTML = '';
+  for (const source of visible) {
     const label = document.createElement('label');
     const input = document.createElement('input');
     input.type = 'checkbox';
@@ -54,7 +58,7 @@ async function setup() {
 
   const [enabled, dialect, posLang] = await Promise.all([getEnabledDicts(), getDialect(), getPosLanguage()]);
 
-  buildCheckboxes(dictContainer, enabled);
+  buildCheckboxes(dictContainer, getVisibleSources(dialect), enabled);
   buildDialectDropdown(dialectSelect, dialect);
   if (posLang === 'ar') posLangAr.checked = true;
   else posLangEn.checked = true;
@@ -63,7 +67,13 @@ async function setup() {
 
   dialectSelect.addEventListener('change', () => {
     const value = dialectSelect.value as DictSource | '';
-    setDialect(value || null);
+    const newDialect = value || null;
+    setDialect(newDialect);
+    const currentEnabled = collectEnabledDicts(dictContainer);
+    const visible = getVisibleSources(newDialect);
+    const newEnabled = newDialect ? [...currentEnabled, newDialect] : currentEnabled;
+    buildCheckboxes(dictContainer, visible, newEnabled);
+    setEnabledDicts(collectEnabledDicts(dictContainer));
   });
 
   posLangEn.addEventListener('change', () => { if (posLangEn.checked) setPosLanguage('en'); });
