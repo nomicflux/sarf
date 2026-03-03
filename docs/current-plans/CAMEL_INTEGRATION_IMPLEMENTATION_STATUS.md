@@ -11,7 +11,12 @@ Integrate CAMeL Tools as primary morphological analyzer with AlKhalil as fallbac
 - **Notes**: Virtual environment created at `backend/venv/`. Added venv/cache dirs to `.gitignore`.
 
 ## Phase 2: Extension CAMeL Client + Type Mapping
-- **Status**: PENDING
+- **Status**: COMPLETE
+- **Subagent**: kiss-code-generator
+- **Files created**: `extension/lib/camel.ts`, `extension/lib/__tests__/camel.test.ts`
+- **Files modified**: `extension/wxt.config.ts` (added localhost host_permission)
+- **Tests**: 148/148 passing (3 new camel tests + 145 existing)
+- **Typecheck**: clean
 
 ## Phase 3: Wire CAMeL into Background with AlKhalil Fallback
 - **Status**: PENDING

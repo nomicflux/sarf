@@ -7,6 +7,7 @@ export default defineConfig({
     host_permissions: [
       "http://oujda-nlp-team.net:8080/*",
       "http://oujda-nlp-team.net:8081/*",
+      "http://localhost:8000/*",
     ],
   },
   vite: () => ({
