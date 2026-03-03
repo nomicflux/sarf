@@ -1,11 +1,11 @@
 import {
   getEnabledDicts, setEnabledDicts, getDialect, setDialect,
-  type DictSource, getPosLanguage, setPosLanguage,
-  DICT_LABELS, DIALECT_SOURCES,
+  type DictSource, type Dialect, getPosLanguage, setPosLanguage,
+  DICT_LABELS, DIALECT_SOURCES, DIALECT_LABELS, DIALECT_DICTS,
 } from '../../lib/dict-prefs';
 
-function getVisibleSources(dialect: DictSource | null): DictSource[] {
-  if (dialect) return [dialect];
+function getVisibleSources(dialect: Dialect | null): DictSource[] {
+  if (dialect) return DIALECT_DICTS[dialect];
   return (Object.keys(DICT_LABELS) as DictSource[]).filter(
     (s) => !DIALECT_SOURCES.includes(s),
   );
@@ -25,19 +25,17 @@ function buildCheckboxes(container: HTMLElement, visible: DictSource[], enabled:
   }
 }
 
-function buildDialectDropdown(select: HTMLSelectElement, current: DictSource | null): void {
+function buildDialectDropdown(select: HTMLSelectElement, current: Dialect | null): void {
   const none = document.createElement('option');
   none.value = '';
   none.textContent = 'MSA';
   select.appendChild(none);
-
-  for (const source of DIALECT_SOURCES) {
+  for (const d of Object.keys(DIALECT_LABELS) as Dialect[]) {
     const option = document.createElement('option');
-    option.value = source;
-    option.textContent = DICT_LABELS[source];
+    option.value = d;
+    option.textContent = DIALECT_LABELS[d];
     select.appendChild(option);
   }
-
   select.value = current ?? '';
 }
 
@@ -66,12 +64,12 @@ async function setup() {
   dictContainer.addEventListener('change', () => setEnabledDicts(collectEnabledDicts(dictContainer)));
 
   dialectSelect.addEventListener('change', () => {
-    const value = dialectSelect.value as DictSource | '';
+    const value = dialectSelect.value as Dialect | '';
     const newDialect = value || null;
     setDialect(newDialect);
     const currentEnabled = collectEnabledDicts(dictContainer);
     const visible = getVisibleSources(newDialect);
-    const newEnabled = newDialect ? [...currentEnabled, newDialect] : currentEnabled;
+    const newEnabled = newDialect ? [...currentEnabled, ...DIALECT_DICTS[newDialect]] : currentEnabled;
     buildCheckboxes(dictContainer, visible, newEnabled);
     setEnabledDicts(collectEnabledDicts(dictContainer));
   });

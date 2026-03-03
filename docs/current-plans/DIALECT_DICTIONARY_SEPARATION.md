@@ -13,6 +13,11 @@ Separate the concept of "dialect" from "dictionary source" so the popup dropdown
 - Updated 2 existing dialect tests to use new `Dialect` values
 - All 144 tests pass
 
-## Phase 2: Update popup to use Dialect type and labels — PENDING
+## Phase 2: Update popup to use Dialect type and labels — COMPLETE
+- Updated import to include `Dialect`, `DIALECT_LABELS`, `DIALECT_DICTS`
+- `getVisibleSources` now takes `Dialect | null`, returns `DIALECT_DICTS[dialect]`
+- `buildDialectDropdown` iterates `DIALECT_LABELS` and shows dialect names ("Egyptian", "Levantine", "Gulf")
+- Dialect change handler uses `DIALECT_DICTS[newDialect]` to spread dict sources
+- All 144 tests pass
 
 ## Phase 3: Clean up and verify end-to-end — PENDING
