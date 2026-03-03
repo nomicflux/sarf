@@ -28,7 +28,7 @@ function buildCheckboxes(container: HTMLElement, visible: DictSource[], enabled:
 function buildDialectDropdown(select: HTMLSelectElement, current: DictSource | null): void {
   const none = document.createElement('option');
   none.value = '';
-  none.textContent = 'None';
+  none.textContent = 'MSA';
   select.appendChild(none);
 
   for (const source of DIALECT_SOURCES) {
