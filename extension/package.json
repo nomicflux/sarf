@@ -13,8 +13,6 @@
     "postinstall": "wxt prepare",
     "build:wiktionary": "npx tsx ../scripts/build-wiktionary.ts",
     "build:dialects": "npx tsx ../scripts/build-dialect-wiktionary.ts",
-    "build:compact": "npx tsx ../scripts/compact-dictionaries.ts",
-    "build:dicts": "npm run build:dialects && npm run build:compact",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

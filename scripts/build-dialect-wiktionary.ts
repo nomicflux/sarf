@@ -2,7 +2,8 @@ import * as https from 'https';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
-import { extractGlosses, mergeGlosses, deduplicateEntries, stripDiacritics } from './build-wiktionary';
+import { extractGlosses, deduplicateEntries, stripDiacritics } from './build-wiktionary';
+import { compactDictionary, filterOutSources, type CompactEntry } from './compact-dictionaries';
 
 interface DictEntry {
   id: number;
@@ -22,7 +23,6 @@ interface WiktionaryEntry {
 interface DialectConfig {
   name: string;
   sources: Array<{ url: string; langCode: string }>;
-  outputFile: string;
   source: string;
   startId: number;
 }
@@ -33,7 +33,6 @@ const DIALECTS: DialectConfig[] = [
     sources: [
       { url: 'https://kaikki.org/dictionary/Egyptian%20Arabic/kaikki.org-dictionary-EgyptianArabic.jsonl', langCode: 'arz' },
     ],
-    outputFile: 'wiktionary-egy.json',
     source: 'wk-egy',
     startId: 100000,
   },
@@ -43,7 +42,6 @@ const DIALECTS: DialectConfig[] = [
       { url: 'https://kaikki.org/dictionary/South%20Levantine%20Arabic/kaikki.org-dictionary-SouthLevantineArabic.jsonl', langCode: 'ajp' },
       { url: 'https://kaikki.org/dictionary/North%20Levantine%20Arabic/kaikki.org-dictionary-NorthLevantineArabic.jsonl', langCode: 'apc' },
     ],
-    outputFile: 'wiktionary-lev.json',
     source: 'wk-lev',
     startId: 200000,
   },
@@ -52,7 +50,6 @@ const DIALECTS: DialectConfig[] = [
     sources: [
       { url: 'https://kaikki.org/dictionary/Gulf%20Arabic/kaikki.org-dictionary-GulfArabic.jsonl', langCode: 'afb' },
     ],
-    outputFile: 'wiktionary-gulf.json',
     source: 'wk-gulf',
     startId: 300000,
   },
@@ -104,7 +101,7 @@ function downloadJsonl(url: string, langCode: string): Promise<Map<string, strin
   });
 }
 
-async function processDialect(dialect: DialectConfig): Promise<void> {
+async function downloadDialect(dialect: DialectConfig): Promise<DictEntry[]> {
   console.log(`Processing ${dialect.name}...`);
 
   const glossMap = new Map<string, string[]>();
@@ -120,19 +117,31 @@ async function processDialect(dialect: DialectConfig): Promise<void> {
 
   const deduplicated = deduplicateEntries(glossMap);
   const entries = createDialectEntries(deduplicated, dialect.source, dialect.startId);
-
-  const outputPath = path.join(__dirname, '../extension/public', dialect.outputFile);
-  fs.writeFileSync(outputPath, JSON.stringify(entries, null, 2));
-
-  const stats = fs.statSync(outputPath);
-  console.log(`  Output ${entries.length} dictionary entries`);
-  console.log(`  File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`  ${entries.length} entries`);
+  return entries;
 }
 
 async function buildAll(): Promise<void> {
+  const compactPath = path.join(__dirname, '../extension/public/dict-compact.json');
+  const dialectSources = DIALECTS.map(d => d.source);
+
+  const existing = JSON.parse(fs.readFileSync(compactPath, 'utf-8')) as CompactEntry[];
+  const base = filterOutSources(existing, dialectSources);
+
+  const dialectEntries: CompactEntry[] = [];
   for (const dialect of DIALECTS) {
-    await processDialect(dialect);
+    const entries = await downloadDialect(dialect);
+    dialectEntries.push(...compactDictionary(entries, dialect.source));
   }
+
+  const combined = [...base, ...dialectEntries];
+  fs.writeFileSync(compactPath, JSON.stringify(combined));
+
+  const outputSize = fs.statSync(compactPath).size;
+  console.log(`Base entries (hw + wk): ${base.length}`);
+  console.log(`Dialect entries added: ${dialectEntries.length}`);
+  console.log(`Total: ${combined.length}`);
+  console.log(`File size: ${(outputSize / 1024 / 1024).toFixed(2)} MB`);
 }
 
 if (require.main === module) {

@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface OldDictEntry {
   id: number;
@@ -40,47 +38,6 @@ export function compactDictionary(entries: OldDictEntry[], source: string): Comp
   return entries.map((entry) => compactEntry(entry, rootWords, source));
 }
 
-export function readAndCompact(filePath: string, source: string): CompactEntry[] {
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as OldDictEntry[];
-  return compactDictionary(data, source);
-}
-
 export function filterOutSources(entries: CompactEntry[], sourcesToRemove: string[]): CompactEntry[] {
   return entries.filter(entry => !sourcesToRemove.includes(entry[3]));
-}
-
-if (require.main === module) {
-  const publicDir = path.join(__dirname, '../extension/public');
-  const compactPath = path.join(publicDir, 'dict-compact.json');
-
-  const DIALECT_FILES = [
-    { file: 'wiktionary-egy.json', source: 'wk-egy' },
-    { file: 'wiktionary-lev.json', source: 'wk-lev' },
-    { file: 'wiktionary-gulf.json', source: 'wk-gulf' },
-  ];
-
-  const dialectSources = DIALECT_FILES.map(d => d.source);
-
-  // Read existing compact data (has hw + wk already)
-  const existing = JSON.parse(fs.readFileSync(compactPath, 'utf-8')) as CompactEntry[];
-
-  // Remove any old dialect entries so this script is re-runnable
-  const base = filterOutSources(existing, dialectSources);
-
-  // Compact each dialect file and append
-  const dialectEntries: CompactEntry[] = [];
-  for (const { file, source } of DIALECT_FILES) {
-    const filePath = path.join(publicDir, file);
-    dialectEntries.push(...readAndCompact(filePath, source));
-  }
-
-  const combined = [...base, ...dialectEntries];
-
-  fs.writeFileSync(compactPath, JSON.stringify(combined));
-
-  const outputSize = fs.statSync(compactPath).size;
-  console.log(`Base entries (hw + wk): ${base.length}`);
-  console.log(`Dialect entries added: ${dialectEntries.length}`);
-  console.log(`Total: ${combined.length}`);
-  console.log(`File size: ${(outputSize / 1024 / 1024).toFixed(2)} MB`);
 }
