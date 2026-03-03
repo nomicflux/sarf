@@ -1,5 +1,7 @@
 # Sarf — Arabic Morphology Browser Extension
 
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+
 A browser extension that shows morphological analysis and dictionary definitions for Arabic words on any webpage. Hover over an Arabic word to see its root, pattern, part of speech, and definitions from Hans Wehr and Wiktionary.
 
 ## Using the Extension

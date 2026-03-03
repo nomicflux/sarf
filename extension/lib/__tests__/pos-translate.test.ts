@@ -20,6 +20,21 @@ describe('translatePosFeature', () => {
     expect(translatePosFeature('معرف')).toBe('definite');
   });
 
+  it('translates noun subtypes from AlKhalil', () => {
+    expect(translatePosFeature('اسم زمان أو مكان')).toBe('noun of time/place');
+    expect(translatePosFeature('اسم فاعل')).toBe('active participle');
+    expect(translatePosFeature('اسم مفعول')).toBe('passive participle');
+    expect(translatePosFeature('اسم جامد')).toBe('concrete noun');
+    expect(translatePosFeature('مصدر أصلي')).toBe('verbal noun');
+  });
+
+  it('translates verb and particle subtypes from AlKhalil', () => {
+    expect(translatePosFeature('ماض')).toBe('past');
+    expect(translatePosFeature('معلوم')).toBe('active');
+    expect(translatePosFeature('جر')).toBe('preposition');
+    expect(translatePosFeature('عطف')).toBe('conjunction');
+  });
+
   it('returns unknown feature unchanged', () => {
     expect(translatePosFeature('unknown')).toBe('unknown');
   });
