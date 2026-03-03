@@ -6,13 +6,21 @@ import { createCache } from '../lib/cache';
 import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
 import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
 import type { CompactEntry } from '../lib/dict-store';
-import { getEnabledDicts } from '../lib/dict-prefs';
+import { getEnabledDicts, getDialect } from '../lib/dict-prefs';
+import type { Dialect } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
 import { isAnalyzePortMessage } from '../lib/stream-types';
 import type { StreamMessage } from '../lib/stream-types';
+import { fetchCamel, camelToAnalysis } from '../lib/camel';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
 let db: IDBDatabase | null = null;
+
+const DIALECT_TO_CAMEL: Record<Dialect, string> = { egy: 'egy', gulf: 'gulf', lev: 'msa' };
+
+function dialectToCamel(dialect: Dialect | null): string {
+  return dialect ? DIALECT_TO_CAMEL[dialect] : 'msa';
+}
 
 async function ensureDictReady(): Promise<IDBDatabase> {
   if (db) return db;
@@ -39,7 +47,7 @@ export default defineBackground({
     });
 
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.enabledDicts) cache.clear();
+      if (changes.enabledDicts || changes.dialect) cache.clear();
     });
   },
 });
@@ -54,8 +62,8 @@ async function handleStreamAnalyze(
   const cached = cache.get(word);
   if (cached) return portSend(port, { type: 'cached', data: cached });
 
-  const { results, error } = await fetchMorphoSysSafe(word);
-  const analysis = morphoSysToAnalysis(word, results, error);
+  const dialect = await getDialect();
+  const analysis = await fetchCamelSafe(word, dialect) ?? await fetchAlkhalilFallback(word);
   portSend(port, { type: 'morph', data: analysis });
 
   const withDict = await enrichWithDictionary(analysis);
@@ -63,15 +71,22 @@ async function handleStreamAnalyze(
   portSend(port, { type: 'dict', definitions: withDict.definitions, root: withDict.root });
 }
 
-async function fetchMorphoSysSafe(
-  word: string,
-): Promise<{ results: MorphoSysAnalysis[]; error: string | null }> {
+async function fetchCamelSafe(word: string, dialect: Dialect | null): Promise<MorphAnalysis | null> {
+  try {
+    const results = await withTimeout(fetchCamel(word, dialectToCamel(dialect)), 3000);
+    return camelToAnalysis(word, results);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchAlkhalilFallback(word: string): Promise<MorphAnalysis> {
   try {
     const results = await withTimeout(fetchMorphoSys(word), 3000);
-    return { results, error: null };
+    return morphoSysToAnalysis(word, results, null);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    return { results: [], error: `MorphoSys failed: ${msg}` };
+    return morphoSysToAnalysis(word, [], `MorphoSys failed: ${msg}`);
   }
 }
 
