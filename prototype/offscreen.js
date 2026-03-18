@@ -4,7 +4,7 @@ function reportTiming(stage, ms) {
 
 async function initPyodide() {
   const start = performance.now();
-  const pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.29.3/full/" });
+  const pyodide = await loadPyodide({ indexURL: "./" });
   const ms = Math.round(performance.now() - start);
   reportTiming("pyodide_init", ms);
   console.log("Pyodide initialized in", ms, "ms");
