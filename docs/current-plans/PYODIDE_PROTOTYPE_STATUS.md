@@ -39,7 +39,21 @@ Chrome MV3 extension prototype testing Pyodide + CAMeL Tools in an offscreen doc
 - `prototype/pyodide.js` — Pyodide loader (18,597 bytes) from CDN v0.29.3, bundled locally for MV3 CSP compliance
 
 ## Phase 2: Extension Shell + Pyodide in Offscreen Document
-**Status**: NOT STARTED
+**Status**: COMPLETE
+
+### Files created
+- `prototype/manifest.json` — MV3 manifest with offscreen permission, local CSP (`'self' 'wasm-unsafe-eval'`)
+- `prototype/background.js` — Creates offscreen doc on install, waits for "ready" signal, sends "init", logs timings
+- `prototype/offscreen.html` — Loads local `pyodide.js` and `offscreen.js`
+- `prototype/offscreen.js` — Signals "ready", listens for "init", loads Pyodide from CDN indexURL, reports timing
+
+### Design decisions
+- Offscreen doc signals "ready" before background sends "init" (avoids race condition)
+- `loadPyodide({indexURL: CDN})` fetches WASM from CDN (fetch not restricted by script-src CSP)
+- Reason: `WORKERS` (compute workload)
+
+### Verification
+Load `prototype/` as unpacked extension at `chrome://extensions`. Service worker console should show `[pyodide_init] Nms`.
 
 ## Phase 3: CAMeL Analysis + Full Benchmarks
 **Status**: NOT STARTED
