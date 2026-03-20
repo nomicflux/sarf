@@ -13,19 +13,6 @@ export interface CamelAnalysis {
   features: Record<string, string>;
 }
 
-export async function fetchCamel(
-  word: string,
-  dialect: string,
-): Promise<CamelAnalysis[]> {
-  const response = await fetch('http://localhost:8000/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ word, dialect }),
-  });
-  const data = await response.json();
-  return data.analyses;
-}
-
 export function camelToAnalysis(
   original: string,
   results: CamelAnalysis[],

@@ -11,7 +11,7 @@ import type { Dialect } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
 import { isAnalyzePortMessage } from '../lib/stream-types';
 import type { StreamMessage } from '../lib/stream-types';
-import { fetchCamel, camelToAnalysis } from '../lib/camel';
+import { camelToAnalysis } from '../lib/camel';
 
 const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
 let db: IDBDatabase | null = null;
@@ -63,7 +63,8 @@ async function handleStreamAnalyze(
   if (cached) return portSend(port, { type: 'cached', data: cached });
 
   const dialect = await getDialect();
-  const analysis = await fetchCamelSafe(word, dialect) ?? await fetchAlkhalilFallback(word);
+  const camelDialect = dialectToCamel(dialect);
+  const analysis = await fetchPyodideAnalysis(word, camelDialect) ?? await fetchAlkhalilFallback(word);
   portSend(port, { type: 'morph', data: analysis });
 
   const withDict = await enrichWithDictionary(analysis);
@@ -71,10 +72,29 @@ async function handleStreamAnalyze(
   portSend(port, { type: 'dict', definitions: withDict.definitions, root: withDict.root });
 }
 
-async function fetchCamelSafe(word: string, dialect: Dialect | null): Promise<MorphAnalysis | null> {
+async function ensureOffscreen(): Promise<void> {
   try {
-    const results = await withTimeout(fetchCamel(word, dialectToCamel(dialect)), 3000);
-    return camelToAnalysis(word, results);
+    await chrome.offscreen.createDocument({
+      url: 'pyodide/offscreen.html',
+      reasons: ['WORKERS'],
+      justification: 'Run Pyodide for Arabic morphological analysis',
+    });
+  } catch { /* already exists */ }
+}
+
+async function fetchPyodideAnalysis(
+  word: string, dialect: string,
+): Promise<MorphAnalysis | null> {
+  try {
+    await ensureOffscreen();
+    const response = await withTimeout(
+      chrome.runtime.sendMessage({
+        type: 'offscreen-analyze', word, dialect,
+      }),
+      30000,
+    );
+    if (!response || response.error) return null;
+    return camelToAnalysis(word, response.analyses);
   } catch {
     return null;
   }

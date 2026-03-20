@@ -20,6 +20,18 @@
 - `extension/public/pyodide/data/morphology-msa.db.gz`
 - `extension/public/pyodide/data/morphology-egy.db.gz`
 
-## Phase 2: Bundle Pyodide Runtime + Offscreen Document + Full Integration — PENDING
+## Phase 2: Bundle Pyodide Runtime + Offscreen Document + Full Integration — COMPLETE
+
+### What was done
+- Copied Pyodide runtime (pyodide.js, pyodide.asm.js, pyodide.asm.wasm, pyodide-lock.json, python_stdlib.zip) and all 15 .whl files from prototype/ to extension/public/pyodide/
+- Created multi-dialect offscreen.html + offscreen.js with lazy DB loading per dialect via DecompressionStream
+- Updated wxt.config.ts: added "offscreen" permission, CSP with 'wasm-unsafe-eval', removed localhost:8000
+- Updated camel.ts: removed fetchCamel() (localhost caller), kept CamelAnalysis interface and camelToAnalysis()
+- Updated background.ts: added ensureOffscreen() + fetchPyodideAnalysis() replacing fetchCamelSafe(), AlKhalil fallback preserved
+
+### Verification
+- 148 tests pass
+- Typecheck clean
+- Build succeeds (36MB total output)
 
 ## Phase 3: Update Documentation — PENDING
