@@ -42,7 +42,9 @@ export default defineBackground({
       if (port.name !== 'sarf') return;
       port.onMessage.addListener((msg: unknown) => {
         if (!isAnalyzePortMessage(msg)) return;
-        handleStreamAnalyze(msg.word, port);
+        handleStreamAnalyze(msg.word, port).catch((e) => {
+          portSend(port, { type: 'error', error: String(e) });
+        });
       });
     });
 
@@ -87,15 +89,24 @@ async function fetchPyodideAnalysis(
 ): Promise<MorphAnalysis | null> {
   try {
     await ensureOffscreen();
+    console.log('[sarf] sending to offscreen:', word, dialect);
     const response = await withTimeout(
-      chrome.runtime.sendMessage({
-        type: 'offscreen-analyze', word, dialect,
+      new Promise<any>((resolve) => {
+        chrome.runtime.sendMessage(
+          { type: 'offscreen-analyze', word, dialect },
+          (resp) => resolve(resp),
+        );
       }),
       30000,
     );
-    if (!response || response.error) return null;
+    console.log('[sarf] offscreen response:', response);
+    if (!response || response.error) {
+      console.error('[sarf] offscreen returned error or empty:', response);
+      return null;
+    }
     return camelToAnalysis(word, response.analyses);
-  } catch {
+  } catch (e) {
+    console.error('[sarf] fetchPyodideAnalysis failed:', e);
     return null;
   }
 }
