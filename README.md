@@ -31,9 +31,10 @@ sarf/
 │   │       ├── index.html
 │   │       └── main.ts
 │   ├── lib/
-│   │   ├── alkhalil.ts           # AlKhalil MorphoSys API client
+│   │   ├── alkhalil.ts           # AlKhalil MorphoSys API client (fallback)
 │   │   ├── arabic.ts             # Arabic text utilities
 │   │   ├── cache.ts              # TTL cache for analysis results
+│   │   ├── camel.ts              # CAMeL analysis type conversion
 │   │   ├── dict-prefs.ts         # Dictionary selection preferences (chrome.storage)
 │   │   ├── dict-store.ts         # IndexedDB dictionary store
 │   │   ├── dictionary.ts         # Dictionary lookup with fallback strategies
@@ -45,7 +46,12 @@ sarf/
 │   ├── assets/
 │   │   └── tooltip.css           # Tooltip styles
 │   ├── public/
-│   │   └── dict-compact.json     # Bundled dictionary data (loaded into IndexedDB)
+│   │   ├── dict-compact.json     # Bundled dictionary data (loaded into IndexedDB)
+│   │   ├── pyodide/              # Pyodide runtime + CAMeL Tools (local analysis)
+│   │   │   ├── offscreen.html    # Offscreen document entry point
+│   │   │   ├── offscreen.js      # Pyodide loader + multi-dialect analysis engine
+│   │   │   ├── data/             # Gzip-compressed morphology databases
+│   │   │   └── [runtime files]   # Pyodide WASM, stdlib, Python wheels
 │   ├── wxt.config.ts             # WXT/manifest configuration
 │   └── package.json
 ├── scripts/
@@ -111,11 +117,14 @@ The compact dictionary file (`extension/public/dict-compact.json`) is checked in
 
 1. The **content script** listens for mouse movement over Arabic text on any webpage
 2. When a word is detected, it sends a message to the **background script**
-3. The background script calls the [AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php) API for morphological analysis
-4. It then looks up definitions in **IndexedDB** (populated from the bundled compact dictionary on first load)
-5. Results are filtered by the user's dictionary preferences and sent back to the content script
-6. The **tooltip** renders the analysis with color-coded morphemes and expandable definitions
+3. The background script forwards the word to an **offscreen document** running [Pyodide](https://pyodide.org/) (Python in WebAssembly), which loads [CAMeL Tools](https://github.com/CAMeL-Lab/camel_tools) for morphological analysis — entirely local, no network request
+4. If Pyodide analysis fails, the extension falls back to the [AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php) API (network request)
+5. Definitions are looked up in **IndexedDB** (populated from the bundled compact dictionary on first load)
+6. Results are filtered by the user's dictionary preferences and sent back to the content script
+7. The **tooltip** renders the analysis with color-coded morphemes and expandable definitions
 
 ## External Services
 
-**[AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php)** — morphosyntactic analyzer for Standard Arabic, developed by [Université Mohammed Premier](https://www.sciencedirect.com/science/article/pii/S131915781630026X) (Oujda, Morocco). When you hover over an Arabic word, that word is sent to their API for analysis. No other page content is transmitted. The API endpoints are documented on the [MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php) and [RootExtractor](http://alkhalil.oujda-nlp-team.net/AlKhalil-RootExtractor.php) pages.
+**Primary analysis** runs entirely locally using [CAMeL Tools](https://github.com/CAMeL-Lab/camel_tools) via [Pyodide](https://pyodide.org/) (Python compiled to WebAssembly). Morphology databases for Gulf, MSA, and Egyptian Arabic are bundled with the extension. No word is sent to any external service for primary analysis.
+
+**[AlKhalil MorphoSys](http://alkhalil.oujda-nlp-team.net/AlKhalil-MorphoSys.php)** — morphosyntactic analyzer for Standard Arabic, developed by [Université Mohammed Premier](https://www.sciencedirect.com/science/article/pii/S131915781630026X) (Oujda, Morocco). Used as a **fallback only** when Pyodide analysis fails. When triggered, the hovered Arabic word is sent to their API. No other page content is transmitted.

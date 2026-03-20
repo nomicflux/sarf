@@ -34,4 +34,8 @@
 - Typecheck clean
 - Build succeeds (36MB total output)
 
-## Phase 3: Update Documentation — PENDING
+## Phase 3: Update Documentation — COMPLETE
+
+### What was done
+- Updated README.md: How It Works, External Services, and Project Layout sections reflect Pyodide as primary local analyzer with AlKhalil as fallback
+- Updated PRIVACY.md: data sent externally (primary is local), data stored locally (Pyodide + DBs), third-party services (AlKhalil fallback only), date updated to 2026-03-19
