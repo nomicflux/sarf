@@ -133,10 +133,19 @@ Tests for `camelToAnalysis`:
 - 7 test cases covering pattern digit replacement, empty pattern, root pass-through, empty results, prefix/suffix arrays
 - All 155 tests pass (7 new + 148 existing)
 
-### Phase 3: Final verification — COMPLETE
+### Phase 3: Final verification — FAILED
+
+Both changes produced garbled output at runtime:
+1. `clean_pattern` Arabic literals in Python inside JS template string → encoding corruption through Pyodide
+2. `extract_affixes` didn't strip `/POS_TAG` from BW segments → garbled bw2ar output
+
+### Fix (Take 2):
+
+1. Removed `clean_pattern` from Python entirely. Pattern digits (ASCII) pass through JSON safely. TypeScript `cleanPattern` in `camel.ts` handles replacement natively.
+2. Added `.split("/")[0]` before `bw2ar()` calls to strip POS tags from BW segments.
 
 - `npm run typecheck` — clean
 - `npm test` — 155/155 pass
-- `npm run build` — builds successfully (36.05 MB)
+- `npm run build` — succeeds
 
-## STATUS: COMPLETE
+## STATUS: FIXED

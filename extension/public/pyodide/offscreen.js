@@ -96,9 +96,6 @@ def clean_lemma(lex):
 def extract_features(raw):
     return {k: raw[k] for k in FEATURE_KEYS if k in raw and raw[k] != "na"}
 
-def clean_pattern(pattern):
-    return pattern.replace("1", "ف").replace("2", "ع").replace("3", "ل")
-
 def count_proclitics(raw):
     return sum(1 for k in ("prc3", "prc2", "prc1", "prc0") if raw.get(k, "0") != "0")
 
@@ -108,8 +105,8 @@ def extract_affixes(raw):
     n_pre = count_proclitics(raw)
     if n_pre >= len(parts):
         return ([], [])
-    prefixes = [bw2ar(p) for p in parts[:n_pre]]
-    suffixes = [bw2ar(p) for p in parts[n_pre + 1:]]
+    prefixes = [bw2ar(p.split("/")[0]) for p in parts[:n_pre]]
+    suffixes = [bw2ar(p.split("/")[0]) for p in parts[n_pre + 1:]]
     return (prefixes, suffixes)
 
 def format_analysis(raw):
@@ -119,7 +116,7 @@ def format_analysis(raw):
         "root": raw.get("root", ""),
         "pos": raw.get("pos", ""),
         "gloss": raw.get("gloss", ""),
-        "pattern": clean_pattern(raw.get("pattern", "")),
+        "pattern": raw.get("pattern", ""),
         "diac": raw.get("diac", ""),
         "prefixes": prefixes,
         "suffixes": suffixes,
