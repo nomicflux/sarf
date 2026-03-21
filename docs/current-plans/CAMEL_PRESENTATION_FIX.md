@@ -122,3 +122,13 @@ Tests for `camelToAnalysis`:
 - Old `extract_affixes(bwtok)` took a string; new takes full `raw` dict — JUSTIFIED: needs proclitic fields
 - Old used heuristic (first/last segment); new uses proclitic count — JUSTIFIED: fixes multi-affix bug
 - Old had no `clean_pattern`; new adds it — JUSTIFIED: fixes digit display bug
+
+### Phase 2: TypeScript safety net + tests — COMPLETE
+
+**Changes applied to `extension/lib/camel.ts`:**
+- Added `cleanPattern(pattern: string): string | null` — replaces 1→ف, 2→ع, 3→ل, returns null for empty
+- Updated `camelToAnalysis` return: `pattern: cleanPattern(first.pattern)`
+
+**Created `extension/tests/camel.test.ts`:**
+- 7 test cases covering pattern digit replacement, empty pattern, root pass-through, empty results, prefix/suffix arrays
+- All 155 tests pass (7 new + 148 existing)

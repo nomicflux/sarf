@@ -13,6 +13,11 @@ export interface CamelAnalysis {
   features: Record<string, string>;
 }
 
+function cleanPattern(pattern: string): string | null {
+  if (!pattern) return null;
+  return pattern.replace(/1/g, 'ف').replace(/2/g, 'ع').replace(/3/g, 'ل');
+}
+
 export function camelToAnalysis(
   original: string,
   results: CamelAnalysis[],
@@ -44,7 +49,7 @@ export function camelToAnalysis(
     verbStem: null,
     suffixes: first.suffixes,
     root: first.root || null,
-    pattern: first.pattern || null,
+    pattern: cleanPattern(first.pattern),
     definitions: [],
     lemmas,
     pos: first.pos || null,
