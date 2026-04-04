@@ -1,6 +1,7 @@
 # Sarf — Arabic Morphology Browser Extension
 
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/michaelannotated/sarf)
 
 A browser extension that shows morphological analysis and dictionary definitions for Arabic words on any webpage. Hover over an Arabic word to see its root, pattern, part of speech, and definitions from Hans Wehr and Wiktionary.
 
@@ -17,7 +18,13 @@ A browser extension that shows morphological analysis and dictionary definitions
 
 **Click** a word to pin the tooltip so it stays visible while you interact with the page. Click elsewhere to dismiss it.
 
-**Dictionary selection** — click the extension icon to open a popup where you can choose which dictionaries to include (Hans Wehr, Wiktionary, or both). Unchecking both hides the definitions section entirely. Your selection persists across sessions.
+**Dialect selection** — click the extension icon to choose the Arabic dialect (MSA, Gulf, or Egyptian). The analyzer uses the corresponding CAMeL Tools morphology database, and the dialect's dictionary is shown automatically.
+
+**Dictionary selection** — choose which dictionaries to include (Hans Wehr, Wiktionary, or both). Unchecking both hides the definitions section entirely.
+
+**POS language** — toggle part-of-speech labels between English and Arabic.
+
+**Enable / disable** — turn the extension on or off without uninstalling it. All settings persist across sessions.
 
 ## Project Layout
 
@@ -35,10 +42,12 @@ sarf/
 │   │   ├── arabic.ts             # Arabic text utilities
 │   │   ├── cache.ts              # TTL cache for analysis results
 │   │   ├── camel.ts              # CAMeL analysis type conversion
-│   │   ├── dict-prefs.ts         # Dictionary selection preferences (chrome.storage)
+│   │   ├── dict-prefs.ts         # Dictionary/dialect/POS preferences (chrome.storage)
 │   │   ├── dict-store.ts         # IndexedDB dictionary store
 │   │   ├── dictionary.ts         # Dictionary lookup with fallback strategies
 │   │   ├── filter.ts             # Filter dictionary entries by source
+│   │   ├── pos-translate.ts      # POS tag translation (Arabic ↔ English)
+│   │   ├── stream-types.ts       # Streaming message types for port communication
 │   │   ├── timeout.ts            # Promise timeout utility
 │   │   ├── tooltip.ts            # Tooltip rendering
 │   │   ├── types.ts              # Shared TypeScript types
@@ -55,8 +64,9 @@ sarf/
 │   ├── wxt.config.ts             # WXT/manifest configuration
 │   └── package.json
 ├── scripts/
-│   ├── build-wiktionary.ts       # Downloads + processes Wiktionary Arabic data
-│   └── compact-dictionaries.ts   # Merges Hans Wehr + Wiktionary into compact format
+│   ├── build-wiktionary.ts           # Downloads + processes Wiktionary Arabic data
+│   ├── build-dialect-wiktionary.ts   # Downloads + processes dialect Wiktionary data
+│   └── compact-dictionaries.ts       # Merges Hans Wehr + Wiktionary into compact format
 └── pkg/                          # Legacy WASM build artifacts (unused)
 ```
 
