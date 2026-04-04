@@ -94,14 +94,17 @@ def clean_lemma(lex):
 def extract_features(raw):
     return {k: raw[k] for k in FEATURE_KEYS if k in raw and raw[k] != "na"}
 
-def parse_d3tok(d3tok):
-    parts = d3tok.split("_")
+def parse_tok(tok):
+    if not tok:
+        return ([], [])
+    parts = tok.split("_")
     prefixes = [p[:-1] for p in parts if p.endswith("+")]
     suffixes = [p[1:] for p in parts if p.startswith("+")]
     return (prefixes, suffixes)
 
 def format_analysis(raw):
-    prefixes, suffixes = parse_d3tok(raw.get("d3tok", ""))
+    tok = raw.get("d3tok") or raw.get("bwtok") or ""
+    prefixes, suffixes = parse_tok(tok)
     return {
         "lemma": clean_lemma(raw.get("lex", "")),
         "root": raw.get("root", ""),
@@ -116,7 +119,9 @@ def format_analysis(raw):
     }
 
 def analyze_word_json(word, dialect):
-    results = [format_analysis(r) for r in analyzers[dialect].analyze(word)]
+    raw = analyzers[dialect].analyze(word)
+    raw.sort(key=lambda r: r.get("pos_lex_logprob", -99), reverse=True)
+    results = [format_analysis(r) for r in raw]
     return json.dumps(results)
   `);
 }
