@@ -1,7 +1,7 @@
 import {
   getEnabledDicts, setEnabledDicts, getDialect, setDialect,
   type DictSource, type Dialect, getPosLanguage, setPosLanguage,
-  getExtensionEnabled, setExtensionEnabled,
+  getExtensionEnabled, setExtensionEnabled, getAnalysisCount, setAnalysisCount,
   DICT_LABELS, DIALECT_SOURCES, DIALECT_LABELS, DIALECT_DICTS,
 } from '../../lib/dict-prefs';
 
@@ -96,15 +96,22 @@ async function setup() {
   const dialectSelect = document.getElementById('dialect') as HTMLSelectElement;
   const posLangEn = document.getElementById('posLangEn') as HTMLInputElement;
   const posLangAr = document.getElementById('posLangAr') as HTMLInputElement;
+  const analysisCountInput = document.getElementById('analysis-count') as HTMLInputElement;
 
-  const [extensionOn, dictSources, dialect, posLang] = await Promise.all([
-    getExtensionEnabled(), getEnabledDicts(), getDialect(), getPosLanguage(),
+  const [extensionOn, dictSources, dialect, posLang, analysisCount] = await Promise.all([
+    getExtensionEnabled(), getEnabledDicts(), getDialect(), getPosLanguage(), getAnalysisCount(),
   ]);
 
   buildCheckboxes(dictContainer, getVisibleSources(dialect), dictSources);
   buildDialectDropdown(dialectSelect, dialect);
   if (posLang === 'ar') posLangAr.checked = true;
   else posLangEn.checked = true;
+  analysisCountInput.value = String(analysisCount);
+  analysisCountInput.addEventListener('change', () => {
+    const n = Math.max(1, parseInt(analysisCountInput.value, 10) || 1);
+    analysisCountInput.value = String(n);
+    setAnalysisCount(n);
+  });
   applyExtensionUi(extensionToggle, settingsBody, extensionOn);
   wireExtensionToggle(extensionToggle, settingsBody);
   wireDictControls(dictContainer, dialectSelect);

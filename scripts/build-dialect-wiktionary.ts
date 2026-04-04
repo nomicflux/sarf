@@ -12,11 +12,13 @@ interface DictEntry {
   isRoot: boolean;
   parentId: number;
   source: string;
+  pos?: string;
 }
 
 interface WiktionaryEntry {
   word: string;
   lang_code: string;
+  pos?: string;
   senses?: Array<{ glosses?: string[] }>;
 }
 
@@ -55,18 +57,16 @@ const DIALECTS: DialectConfig[] = [
   },
 ];
 
-export function createDialectEntries(deduplicated: Map<string, string>, source: string, startId: number): DictEntry[] {
+export function createDialectEntries(
+  deduplicated: Map<string, string>, source: string, startId: number,
+): DictEntry[] {
   const entries: DictEntry[] = [];
   let id = startId;
-  for (const [word, definition] of deduplicated) {
-    entries.push({
-      id,
-      word,
-      definition,
-      isRoot: false,
-      parentId: id,
-      source,
-    });
+  for (const [key, definition] of deduplicated) {
+    const pipe = key.indexOf('|');
+    const word = key.slice(0, pipe);
+    const pos = key.slice(pipe + 1);
+    entries.push({ id, word, definition, isRoot: false, parentId: id, source, pos });
     id++;
   }
   return entries;
@@ -88,8 +88,10 @@ function downloadJsonl(url: string, langCode: string): Promise<Map<string, strin
         if (glosses.length === 0) return;
 
         const normalized = stripDiacritics(entry.word);
-        const existing = glossMap.get(normalized) || [];
-        glossMap.set(normalized, [...existing, ...glosses]);
+        const pos = entry.pos ?? 'unknown';
+        const key = `${normalized}|${pos}`;
+        const existing = glossMap.get(key) || [];
+        glossMap.set(key, [...existing, ...glosses]);
       });
 
       rl.on('close', () => {

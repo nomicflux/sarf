@@ -118,10 +118,11 @@ def format_analysis(raw):
         "features": extract_features(raw),
     }
 
-def analyze_word_json(word, dialect):
+def analyze_word_json(word, dialect, top_n):
     raw = analyzers[dialect].analyze(word)
     raw.sort(key=lambda r: r.get("pos_lex_logprob", -99), reverse=True)
-    results = [format_analysis(r) for r in raw]
+    raw = [r for r in raw if r.get("pos_lex_logprob", -99) >= -8]
+    results = [format_analysis(r) for r in raw[:top_n]]
     return json.dumps(results)
   `);
 }
@@ -146,18 +147,19 @@ async function doInit() {
   initialized = true;
 }
 
-async function analyzeWord(word, dialect) {
+async function analyzeWord(word, dialect, topN) {
   await ensureInitialized();
   await loadDatabase(dialect);
   pyodide.globals.set('_word', word);
   pyodide.globals.set('_dialect', dialect);
-  const result = await pyodide.runPythonAsync('analyze_word_json(_word, _dialect)');
+  pyodide.globals.set('_top_n', topN);
+  const result = await pyodide.runPythonAsync('analyze_word_json(_word, _dialect, _top_n)');
   return { analyses: JSON.parse(result) };
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'offscreen-analyze') {
-    analyzeWord(msg.word, msg.dialect)
+    analyzeWord(msg.word, msg.dialect, msg.topN ?? 1)
       .then(sendResponse)
       .catch((e) => {
         console.error('[offscreen] analyzeWord failed:', e);

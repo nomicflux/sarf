@@ -3,6 +3,27 @@ export interface DictEntry {
   definition: string;
   rootWord: string;
   source: string;
+  pos: string | null;
+}
+
+const CAMEL_TO_KAIKKI: Record<string, string[]> = {
+  noun:   ['noun', 'name', 'num'],
+  verb:   ['verb'],
+  adj:    ['adj'],
+  adv:    ['adv'],
+  prep:   ['prep', 'preposition'],
+  conj:   ['conj', 'conjunction'],
+  pron:   ['pron', 'pronoun'],
+  part:   ['particle', 'part'],
+  det:    ['det', 'determiner', 'article'],
+  interj: ['intj', 'interj'],
+};
+
+export function filterEntriesByPos(entries: DictEntry[], camelPos: string | null): DictEntry[] {
+  if (!camelPos) return entries;
+  const allowed = CAMEL_TO_KAIKKI[camelPos];
+  if (!allowed) return entries;
+  return entries.filter(e => e.pos === null || allowed.includes(e.pos));
 }
 
 export async function lookupWithFallback(

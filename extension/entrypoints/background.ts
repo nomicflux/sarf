@@ -3,17 +3,17 @@ import { fetchMorphoSys } from '../lib/alkhalil';
 import type { MorphoSysAnalysis } from '../lib/alkhalil';
 import { withTimeout } from '../lib/timeout';
 import { createCache } from '../lib/cache';
-import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
+import { lookupAnalysis, lookupByLemma, filterEntriesByPos, stripDiacritics } from '../lib/dictionary';
 import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
 import type { CompactEntry } from '../lib/dict-store';
-import { getEnabledDicts, getDialect, getExtensionEnabled } from '../lib/dict-prefs';
+import { getEnabledDicts, getDialect, getExtensionEnabled, getAnalysisCount } from '../lib/dict-prefs';
 import type { Dialect } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
 import { isAnalyzePortMessage } from '../lib/stream-types';
 import type { StreamMessage } from '../lib/stream-types';
-import { camelToAnalysis } from '../lib/camel';
+import { camelToAnalysis, deduplicateAnalyses } from '../lib/camel';
 
-const cache = createCache<MorphAnalysis>(500, 30 * 60 * 1000);
+const cache = createCache<MorphAnalysis[]>(500, 30 * 60 * 1000);
 let db: IDBDatabase | null = null;
 
 const DIALECT_TO_CAMEL: Record<Dialect, string> = { egy: 'egy', gulf: 'gulf', lev: 'msa' };
@@ -73,12 +73,14 @@ async function handleStreamAnalyze(
 
   const dialect = await getDialect();
   const camelDialect = dialectToCamel(dialect);
-  const analysis = await fetchPyodideAnalysis(word, camelDialect) ?? await fetchAlkhalilFallback(word);
-  portSend(port, { type: 'morph', data: analysis });
+  const raw = await fetchPyodideAnalysis(word, camelDialect) ?? [await fetchAlkhalilFallback(word)];
+  const analyses = deduplicateAnalyses(raw);
+  portSend(port, { type: 'morph', data: analyses });
 
-  const withDict = await enrichWithDictionary(analysis);
-  cache.set(word, withDict);
-  portSend(port, { type: 'dict', definitions: withDict.definitions, root: withDict.root });
+  const lemmaOnly = analyses.length > 1;
+  const withDicts = await Promise.all(analyses.map(a => enrichWithDictionary(a, lemmaOnly)));
+  cache.set(word, withDicts);
+  portSend(port, { type: 'dict', analyses: withDicts });
 }
 
 async function ensureOffscreen(): Promise<void> {
@@ -93,14 +95,15 @@ async function ensureOffscreen(): Promise<void> {
 
 async function fetchPyodideAnalysis(
   word: string, dialect: string,
-): Promise<MorphAnalysis | null> {
+): Promise<MorphAnalysis[] | null> {
   try {
     await ensureOffscreen();
     console.log('[sarf] sending to offscreen:', word, dialect);
+    const topN = await getAnalysisCount();
     const response = await withTimeout(
       new Promise<any>((resolve) => {
         chrome.runtime.sendMessage(
-          { type: 'offscreen-analyze', word, dialect },
+          { type: 'offscreen-analyze', word, dialect, topN },
           (resp) => resolve(resp),
         );
       }),
@@ -128,13 +131,16 @@ async function fetchAlkhalilFallback(word: string): Promise<MorphAnalysis> {
   }
 }
 
-async function enrichWithDictionary(analysis: MorphAnalysis): Promise<MorphAnalysis> {
+async function enrichWithDictionary(analysis: MorphAnalysis, lemmaOnly = false): Promise<MorphAnalysis> {
   const enabledSources = await getEnabledDicts();
   if (enabledSources.length === 0) return { ...analysis, definitions: [] };
   const database = await ensureDictReady();
   const lookup = (word: string) => queryByWord(database, word);
-  const result = await lookupAnalysis(lookup, analysis);
-  const filtered = filterBySource(result.entries, enabledSources);
+  const result = lemmaOnly
+    ? await lookupByLemma(lookup, analysis.lemmas[0] ?? '')
+    : await lookupAnalysis(lookup, analysis);
+  const byPos = filterEntriesByPos(result.entries, analysis.pos);
+  const filtered = filterBySource(byPos, enabledSources);
   const root = analysis.root ?? result.rootWord;
   const definitions = filtered.map(e => ({ word: e.word, text: e.definition, source: e.source }));
   return { ...analysis, definitions, root };

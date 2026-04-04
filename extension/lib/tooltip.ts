@@ -107,10 +107,10 @@ export function showTooltip(
   el: HTMLDivElement,
   x: number,
   y: number,
-  analysis: MorphAnalysis,
+  analyses: MorphAnalysis[],
   posLang: PosLanguage,
 ): void {
-  el.innerHTML = renderAnalysis(analysis, posLang);
+  el.innerHTML = analyses.map(a => renderAnalysis(a, posLang)).join('<hr class="sarf-divider">');
   attachEllipsisHandlers(el);
   el.classList.add('sarf-visible');
   const pos = clampPosition(x, y, window.innerWidth, window.innerHeight, el.offsetWidth, el.offsetHeight);
@@ -150,27 +150,6 @@ export function showLoadingTooltip(el: HTMLDivElement, x: number, y: number): vo
   el.style.top = `${pos.y}px`;
 }
 
-export function updateTooltipMorph(el: HTMLDivElement, analysis: PartialMorph, posLang: PosLanguage): void {
-  const section = el.querySelector('[data-section="morph"]');
-  if (section) section.innerHTML = renderMorphHtml(analysis, posLang);
-}
-
-export function updateTooltipDict(
-  el: HTMLDivElement,
-  definitions: Array<{ word: string; text: string; source: string }>,
-  root: string | null,
-): void {
-  const dictSection = el.querySelector('[data-section="dict"]');
-  if (dictSection) {
-    dictSection.innerHTML = renderDefinitions(definitions);
-    attachEllipsisHandlers(el);
-  }
-  if (!root) return;
-  const morphSection = el.querySelector('[data-section="morph"]');
-  if (!morphSection) return;
-  const rootEl = morphSection.querySelector('.sarf-missing');
-  if (rootEl?.textContent?.includes('Root:')) {
-    rootEl.className = 'sarf-detail';
-    rootEl.innerHTML = `Root: <span class="sarf-value">${root}</span>`;
-  }
+export function updateTooltipMorph(el: HTMLDivElement, analyses: PartialMorph[], posLang: PosLanguage): void {
+  el.innerHTML = analyses.map(a => renderMorphHtml(a, posLang)).join('<hr class="sarf-divider">');
 }

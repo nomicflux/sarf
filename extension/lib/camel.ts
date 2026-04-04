@@ -1,4 +1,4 @@
-import { MorphAnalysis } from './types';
+import type { MorphAnalysis } from './types';
 import { stripDiacritics } from './dictionary';
 
 export interface CamelAnalysis {
@@ -19,42 +19,43 @@ function cleanPattern(pattern: string): string | null {
   return pattern.replace(/1/g, 'ف').replace(/2/g, 'ع').replace(/3/g, 'ل');
 }
 
+function hasBreakdown(a: MorphAnalysis): boolean {
+  return a.prefixes.length > 0 || a.suffixes.length > 0;
+}
+
+export function deduplicateAnalyses(analyses: MorphAnalysis[]): MorphAnalysis[] {
+  const seen = new Map<string, MorphAnalysis>();
+  for (const a of analyses) {
+    const key = `${a.lemmas[0] ?? ''}|${a.pos ?? ''}`;
+    const existing = seen.get(key);
+    if (!existing || (!hasBreakdown(existing) && hasBreakdown(a))) seen.set(key, a);
+  }
+  return [...seen.values()];
+}
+
 export function camelToAnalysis(
   original: string,
   results: CamelAnalysis[],
-): MorphAnalysis {
+): MorphAnalysis[] {
   if (results.length === 0) {
-    return {
-      original,
-      prefixes: [],
-      stem: original,
-      verbStem: null,
-      suffixes: [],
-      root: null,
-      pattern: null,
-      definitions: [],
-      lemmas: [],
-      pos: null,
-      isParticle: false,
-      error: null,
-    };
+    return [{
+      original, prefixes: [], stem: original, verbStem: null,
+      suffixes: [], root: null, pattern: null, definitions: [],
+      lemmas: [], pos: null, isParticle: false, error: null,
+    }];
   }
-
-  const first = results[0];
-  const lemmas = [...new Set(results.map(r => stripDiacritics(r.lemma)))];
-
-  return {
+  return results.map(r => ({
     original,
-    prefixes: first.prefixes,
-    stem: first.stem ? stripDiacritics(first.stem) : stripDiacritics(first.lemma),
+    prefixes: r.prefixes,
+    stem: r.stem ? stripDiacritics(r.stem) : stripDiacritics(r.lemma),
     verbStem: null,
-    suffixes: first.suffixes,
-    root: first.root || null,
-    pattern: cleanPattern(first.pattern),
+    suffixes: r.suffixes,
+    root: r.root || null,
+    pattern: cleanPattern(r.pattern),
     definitions: [],
-    lemmas,
-    pos: first.pos || null,
+    lemmas: [stripDiacritics(r.lemma)],
+    pos: r.pos || null,
     isParticle: false,
     error: null,
-  };
+  }));
 }

@@ -8,9 +8,9 @@ export interface AnalyzePortMessage {
 }
 
 export type StreamMessage =
-  | { type: 'morph'; data: PartialMorph }
-  | { type: 'dict'; definitions: Array<{ word: string; text: string; source: string }>; root: string | null }
-  | { type: 'cached'; data: MorphAnalysis }
+  | { type: 'morph'; data: PartialMorph[] }
+  | { type: 'dict'; analyses: MorphAnalysis[] }
+  | { type: 'cached'; data: MorphAnalysis[] }
   | { type: 'error'; error: string };
 
 export function isAnalyzePortMessage(msg: unknown): msg is AnalyzePortMessage {

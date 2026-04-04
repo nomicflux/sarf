@@ -47,14 +47,14 @@ describe('compact-dictionaries', () => {
       const entry: OldDictEntry = { id: 1, word: 'كتب', definition: 'to write', isRoot: true, parentId: 1 };
       const rootWords = new Map([[1, 'كتب']]);
       const result = compactEntry(entry, rootWords, 'hw');
-      expect(result).toEqual(['كتب', 'to write', 'كتب', 'hw']);
+      expect(result).toEqual(['كتب', 'to write', 'كتب', 'hw', null]);
     });
 
     it('uses rootWords map for root word', () => {
       const entry: OldDictEntry = { id: 2, word: 'كتاب', definition: 'book', isRoot: false, parentId: 1 };
       const rootWords = new Map([[2, 'كتب']]);
       const result = compactEntry(entry, rootWords, 'hw');
-      expect(result).toEqual(['كتاب', 'book', 'كتب', 'hw']);
+      expect(result).toEqual(['كتاب', 'book', 'كتب', 'hw', null]);
     });
   });
 
@@ -66,8 +66,8 @@ describe('compact-dictionaries', () => {
       ];
       const result = compactDictionary(entries, 'hw');
       expect(result).toEqual([
-        ['كتب', 'to write', 'كتب', 'hw'],
-        ['كتاب', 'book', 'كتب', 'hw'],
+        ['كتب', 'to write', 'كتب', 'hw', null],
+        ['كتاب', 'book', 'كتب', 'hw', null],
       ]);
     });
 
@@ -87,14 +87,14 @@ describe('compact-dictionaries', () => {
   describe('filterOutSources', () => {
     it('removes entries matching specified sources', () => {
       const entries: CompactEntry[] = [
-        ['كتب', 'to write', 'كتب', 'hw'],
-        ['كتاب', 'book', 'كتب', 'wk-egy'],
-        ['مكتبة', 'library', 'كتب', 'wk'],
+        ['كتب', 'to write', 'كتب', 'hw', null],
+        ['كتاب', 'book', 'كتب', 'wk-egy', null],
+        ['مكتبة', 'library', 'كتب', 'wk', null],
       ];
       const result = filterOutSources(entries, ['wk-egy']);
       expect(result).toEqual([
-        ['كتب', 'to write', 'كتب', 'hw'],
-        ['مكتبة', 'library', 'كتب', 'wk'],
+        ['كتب', 'to write', 'كتب', 'hw', null],
+        ['مكتبة', 'library', 'كتب', 'wk', null],
       ]);
     });
   });

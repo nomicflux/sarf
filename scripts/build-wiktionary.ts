@@ -2,6 +2,7 @@ import * as https from 'https';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
+import { compactDictionary, filterOutSources, type CompactEntry } from './compact-dictionaries';
 
 interface DictEntry {
   id: number;
@@ -10,17 +11,19 @@ interface DictEntry {
   isRoot: boolean;
   parentId: number;
   source: string;
+  pos?: string;
 }
 
 interface WiktionaryEntry {
   word: string;
   lang_code: string;
+  pos?: string;
   senses?: Array<{ glosses?: string[] }>;
 }
 
 const DIACRITICS = /[\u064B-\u065F\u0670]/g;
 const START_ID = 24931;
-const OUTPUT_PATH = path.join(__dirname, '../extension/public/wiktionary.json');
+const COMPACT_PATH = path.join(__dirname, '../extension/public/dict-compact.json');
 const WIKTIONARY_URL = 'https://kaikki.org/dictionary/Arabic/kaikki.org-dictionary-Arabic.jsonl';
 
 export function normalizeAlif(text: string): string {
@@ -57,15 +60,11 @@ export function deduplicateEntries(entries: Map<string, string[]>): Map<string, 
 export function createDictEntries(deduplicated: Map<string, string>): DictEntry[] {
   const entries: DictEntry[] = [];
   let id = START_ID;
-  for (const [word, definition] of deduplicated) {
-    entries.push({
-      id,
-      word,
-      definition,
-      isRoot: false,
-      parentId: id,
-      source: 'wk',
-    });
+  for (const [key, definition] of deduplicated) {
+    const pipe = key.indexOf('|');
+    const word = key.slice(0, pipe);
+    const pos = key.slice(pipe + 1);
+    entries.push({ id, word, definition, isRoot: false, parentId: id, source: 'wk', pos });
     id++;
   }
   return entries;
@@ -89,20 +88,26 @@ function downloadAndProcess(): Promise<void> {
         if (glosses.length === 0) return;
 
         const normalized = stripDiacritics(entry.word);
-        const existing = glossMap.get(normalized) || [];
-        glossMap.set(normalized, [...existing, ...glosses]);
+        const pos = entry.pos ?? 'unknown';
+        const key = `${normalized}|${pos}`;
+        const existing = glossMap.get(key) || [];
+        glossMap.set(key, [...existing, ...glosses]);
       });
 
       rl.on('close', () => {
         const deduplicated = deduplicateEntries(glossMap);
         const entries = createDictEntries(deduplicated);
+        const newWk = compactDictionary(entries, 'wk');
 
-        fs.writeFileSync(OUTPUT_PATH, JSON.stringify(entries, null, 2));
+        const existing = JSON.parse(fs.readFileSync(COMPACT_PATH, 'utf-8')) as CompactEntry[];
+        const base = filterOutSources(existing, ['wk']);
+        const combined = [...base, ...newWk];
+        fs.writeFileSync(COMPACT_PATH, JSON.stringify(combined));
 
-        const stats = fs.statSync(OUTPUT_PATH);
         console.log(`Processed ${totalProcessed} JSONL entries`);
-        console.log(`Output ${entries.length} dictionary entries`);
-        console.log(`File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`New wk entries: ${newWk.length}`);
+        console.log(`Total entries: ${combined.length}`);
+        console.log(`File size: ${(fs.statSync(COMPACT_PATH).size / 1024 / 1024).toFixed(2)} MB`);
         resolve();
       });
 

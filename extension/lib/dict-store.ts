@@ -1,19 +1,20 @@
 import type { DictEntry } from './dictionary';
 
-export type CompactEntry = [string, string, string, string];
+export type CompactEntry = [string, string, string, string, string | null];
 
 export function parseCompactEntry(tuple: CompactEntry): DictEntry {
-  const [word, definition, rootWord, source] = tuple;
-  return { word, definition, rootWord, source };
+  const [word, definition, rootWord, source, pos = null] = tuple;
+  return { word, definition, rootWord, source, pos };
 }
 
 export async function openDictDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('sarf-dict', 1);
+    const request = indexedDB.open('sarf-dict', 2);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      if (event.oldVersion > 0) db.deleteObjectStore('entries');
       const store = db.createObjectStore('entries', { autoIncrement: true });
       store.createIndex('word', 'word', { unique: false });
     };

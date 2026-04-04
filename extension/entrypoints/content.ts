@@ -2,7 +2,7 @@ import '../assets/tooltip.css';
 import { containsArabic, extractWordAtOffset } from '../lib/arabic';
 import {
   createTooltipElement, showTooltip, showLoadingTooltip,
-  updateTooltipMorph, updateTooltipDict,
+  updateTooltipMorph,
   hideTooltip, pinTooltip, unpinTooltip, isPinned,
 } from '../lib/tooltip';
 import { getTextAtPoint } from '../lib/hit-test';
@@ -82,7 +82,7 @@ export default defineContentScript({
           updateTooltipMorph(tooltip, msg.data, posLang);
           break;
         case 'dict':
-          updateTooltipDict(tooltip, msg.definitions, msg.root);
+          showTooltip(tooltip, x, y, msg.analyses, posLang);
           disconnectPort();
           break;
         case 'error':

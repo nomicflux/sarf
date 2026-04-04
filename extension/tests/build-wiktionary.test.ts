@@ -84,14 +84,15 @@ describe('deduplicateEntries', () => {
 describe('createDictEntries', () => {
   it('creates dict entries starting at ID 24931', () => {
     const map = new Map<string, string>([
-      ['كتاب', 'book'],
-      ['قلم', 'pen'],
+      ['كتاب|noun', 'book'],
+      ['قلم|noun', 'pen'],
     ]);
     const entries = createDictEntries(map);
     expect(entries).toHaveLength(2);
     expect(entries[0].id).toBe(24931);
     expect(entries[0].word).toBe('كتاب');
     expect(entries[0].definition).toBe('book');
+    expect(entries[0].pos).toBe('noun');
     expect(entries[0].isRoot).toBe(false);
     expect(entries[0].parentId).toBe(24931);
     expect(entries[0].source).toBe('wk');

@@ -6,9 +6,10 @@ interface OldDictEntry {
   isRoot: boolean;
   parentId: number;
   source?: string;
+  pos?: string;
 }
 
-export type CompactEntry = [string, string, string, string]; // [word, definition, rootWord, source]
+export type CompactEntry = [string, string, string, string, string | null]; // [word, definition, rootWord, source, pos]
 
 export function resolveRootWords(entries: OldDictEntry[]): Map<number, string> {
   const idToWord = new Map<number, string>();
@@ -30,7 +31,7 @@ export function compactEntry(
   source: string
 ): CompactEntry {
   const rootWord = rootWords.get(entry.id) ?? entry.word;
-  return [entry.word, entry.definition, rootWord, source];
+  return [entry.word, entry.definition, rootWord, source, entry.pos ?? null];
 }
 
 export function compactDictionary(entries: OldDictEntry[], source: string): CompactEntry[] {

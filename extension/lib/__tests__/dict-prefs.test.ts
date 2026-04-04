@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage,
-  getExtensionEnabled, setExtensionEnabled,
+  getExtensionEnabled, setExtensionEnabled, getAnalysisCount, setAnalysisCount,
   DIALECT_SOURCES, DICT_LABELS, DIALECT_LABELS, DIALECT_DICTS,
 } from '../dict-prefs';
 
@@ -134,5 +134,23 @@ describe('dict-prefs', () => {
   it('DIALECT_SOURCES equals flattened DIALECT_DICTS values', () => {
     const flattened = Object.values(DIALECT_DICTS).flat();
     expect(DIALECT_SOURCES).toEqual(flattened);
+  });
+
+  it('returns default analysis count when storage is empty', async () => {
+    mockStorage();
+    const result = await getAnalysisCount();
+    expect(result).toBe(1);
+  });
+
+  it('returns stored analysis count when storage has data', async () => {
+    mockStorage({ analysisCount: 3 });
+    const result = await getAnalysisCount();
+    expect(result).toBe(3);
+  });
+
+  it('writes analysis count to storage', async () => {
+    const mock = mockStorage();
+    await setAnalysisCount(2);
+    expect(mock.set).toHaveBeenCalledWith({ analysisCount: 2 });
   });
 });

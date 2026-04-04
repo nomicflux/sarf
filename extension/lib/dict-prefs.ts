@@ -73,4 +73,16 @@ export async function setDialect(dialect: Dialect | null): Promise<void> {
   await chrome.storage.local.set({ [DIALECT_KEY]: dialect });
 }
 
+const ANALYSIS_COUNT_KEY = 'analysisCount';
+const DEFAULT_ANALYSIS_COUNT = 1;
+
+export async function getAnalysisCount(): Promise<number> {
+  const result = await chrome.storage.local.get(ANALYSIS_COUNT_KEY);
+  return (result[ANALYSIS_COUNT_KEY] as number | undefined) ?? DEFAULT_ANALYSIS_COUNT;
+}
+
+export async function setAnalysisCount(count: number): Promise<void> {
+  await chrome.storage.local.set({ [ANALYSIS_COUNT_KEY]: count });
+}
+
 export type { PosLanguage };

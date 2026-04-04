@@ -124,13 +124,14 @@ describe('lookupAnalysis', () => {
 
 describe('parseCompactEntry', () => {
   it('converts tuple to DictEntry', () => {
-    const tuple: CompactEntry = ['كتاب', 'kitāb book', 'كتب', 'hw'];
+    const tuple: CompactEntry = ['كتاب', 'kitāb book', 'كتب', 'hw', null];
     const entry = parseCompactEntry(tuple);
     expect(entry).toEqual({
       word: 'كتاب',
       definition: 'kitāb book',
       rootWord: 'كتب',
       source: 'hw',
+      pos: null,
     });
   });
 });
