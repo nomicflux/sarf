@@ -4,6 +4,7 @@ import { stripDiacritics } from './dictionary';
 export interface CamelAnalysis {
   lemma: string;
   root: string;
+  stem: string;
   pos: string;
   gloss: string;
   pattern: string;
@@ -45,7 +46,7 @@ export function camelToAnalysis(
   return {
     original,
     prefixes: first.prefixes,
-    stem: stripDiacritics(first.lemma),
+    stem: first.stem ? stripDiacritics(first.stem) : stripDiacritics(first.lemma),
     verbStem: null,
     suffixes: first.suffixes,
     root: first.root || null,

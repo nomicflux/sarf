@@ -5,6 +5,7 @@ function makeCamel(overrides: Partial<CamelAnalysis> = {}): CamelAnalysis {
   return {
     lemma: 'test',
     root: 'tst',
+    stem: 'test',
     pos: 'noun',
     gloss: 'test',
     pattern: '1a2a3',
@@ -53,6 +54,18 @@ describe('camelToAnalysis', () => {
     expect(analysis.root).toBeNull();
     expect(analysis.prefixes).toEqual([]);
     expect(analysis.suffixes).toEqual([]);
+  });
+
+  it('should use stem field for stem display', () => {
+    const results = [makeCamel({ stem: 'كُتّاب', lemma: 'كُتّاب' })];
+    const analysis = camelToAnalysis('test', results);
+    expect(analysis.stem).toBe('كتاب');
+  });
+
+  it('should fall back to lemma when stem is empty', () => {
+    const results = [makeCamel({ stem: '', lemma: 'كِتَاب' })];
+    const analysis = camelToAnalysis('test', results);
+    expect(analysis.stem).toBe('كتاب');
   });
 
   it('should pass through prefixes and suffixes arrays', () => {

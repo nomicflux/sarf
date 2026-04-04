@@ -84,9 +84,7 @@ analyzers[_dialect] = Analyzer(db)
 
 async function setupAnalysis() {
   await pyodide.runPythonAsync(`
-from camel_tools.utils.charmap import CharMapper
 import json
-bw2ar = CharMapper.builtin_mapper('bw2ar')
 analyzers = {}
 FEATURE_KEYS = ("per", "asp", "vox", "mod", "gen", "num", "cas", "stt")
 
@@ -96,24 +94,18 @@ def clean_lemma(lex):
 def extract_features(raw):
     return {k: raw[k] for k in FEATURE_KEYS if k in raw and raw[k] != "na"}
 
-def count_proclitics(raw):
-    return sum(1 for k in ("prc3", "prc2", "prc1", "prc0") if raw.get(k, "0") != "0")
-
-def extract_affixes(raw):
-    bw = raw.get("bw", "")
-    parts = bw.split("+")
-    n_pre = count_proclitics(raw)
-    if n_pre >= len(parts):
-        return ([], [])
-    prefixes = [bw2ar(p.split("/")[0]) for p in parts[:n_pre]]
-    suffixes = [bw2ar(p.split("/")[0]) for p in parts[n_pre + 1:]]
+def parse_d3tok(d3tok):
+    parts = d3tok.split("_")
+    prefixes = [p[:-1] for p in parts if p.endswith("+")]
+    suffixes = [p[1:] for p in parts if p.startswith("+")]
     return (prefixes, suffixes)
 
 def format_analysis(raw):
-    prefixes, suffixes = extract_affixes(raw)
+    prefixes, suffixes = parse_d3tok(raw.get("d3tok", ""))
     return {
         "lemma": clean_lemma(raw.get("lex", "")),
         "root": raw.get("root", ""),
+        "stem": raw.get("stem", ""),
         "pos": raw.get("pos", ""),
         "gloss": raw.get("gloss", ""),
         "pattern": raw.get("pattern", ""),
