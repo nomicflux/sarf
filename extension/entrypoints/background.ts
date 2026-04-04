@@ -6,7 +6,7 @@ import { createCache } from '../lib/cache';
 import { lookupAnalysis, stripDiacritics } from '../lib/dictionary';
 import { openDictDb, isDictPopulated, populateDict, queryByWord } from '../lib/dict-store';
 import type { CompactEntry } from '../lib/dict-store';
-import { getEnabledDicts, getDialect } from '../lib/dict-prefs';
+import { getEnabledDicts, getDialect, getExtensionEnabled } from '../lib/dict-prefs';
 import type { Dialect } from '../lib/dict-prefs';
 import { filterBySource } from '../lib/filter';
 import { isAnalyzePortMessage } from '../lib/stream-types';
@@ -42,9 +42,7 @@ export default defineBackground({
       if (port.name !== 'sarf') return;
       port.onMessage.addListener((msg: unknown) => {
         if (!isAnalyzePortMessage(msg)) return;
-        handleStreamAnalyze(msg.word, port).catch((e) => {
-          portSend(port, { type: 'error', error: String(e) });
-        });
+        void runAnalyzeIfEnabled(msg.word, port);
       });
     });
 
@@ -56,6 +54,15 @@ export default defineBackground({
 
 function portSend(port: chrome.runtime.Port, msg: StreamMessage): void {
   try { port.postMessage(msg); } catch { /* port disconnected */ }
+}
+
+async function runAnalyzeIfEnabled(word: string, port: chrome.runtime.Port): Promise<void> {
+  if (!(await getExtensionEnabled())) return;
+  try {
+    await handleStreamAnalyze(word, port);
+  } catch (e) {
+    portSend(port, { type: 'error', error: String(e) });
+  }
 }
 
 async function handleStreamAnalyze(

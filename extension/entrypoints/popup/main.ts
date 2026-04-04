@@ -1,6 +1,7 @@
 import {
   getEnabledDicts, setEnabledDicts, getDialect, setDialect,
   type DictSource, type Dialect, getPosLanguage, setPosLanguage,
+  getExtensionEnabled, setExtensionEnabled,
   DICT_LABELS, DIALECT_SOURCES, DIALECT_LABELS, DIALECT_DICTS,
 } from '../../lib/dict-prefs';
 
@@ -48,21 +49,29 @@ function collectEnabledDicts(container: HTMLElement): DictSource[] {
   return sources;
 }
 
-async function setup() {
-  const dictContainer = document.getElementById('dict-checkboxes')!;
-  const dialectSelect = document.getElementById('dialect') as HTMLSelectElement;
-  const posLangEn = document.getElementById('posLangEn') as HTMLInputElement;
-  const posLangAr = document.getElementById('posLangAr') as HTMLInputElement;
+function applyExtensionUi(
+  toggle: HTMLInputElement, settingsBody: HTMLElement, extensionOn: boolean,
+): void {
+  toggle.checked = extensionOn;
+  settingsBody.classList.toggle('settings-body--disabled', !extensionOn);
+  for (const el of settingsBody.querySelectorAll('input, select')) {
+    (el as HTMLInputElement | HTMLSelectElement).disabled = !extensionOn;
+  }
+}
 
-  const [enabled, dialect, posLang] = await Promise.all([getEnabledDicts(), getDialect(), getPosLanguage()]);
+function wireExtensionToggle(
+  toggle: HTMLInputElement, settingsBody: HTMLElement,
+): void {
+  toggle.addEventListener('change', async () => {
+    await setExtensionEnabled(toggle.checked);
+    applyExtensionUi(toggle, settingsBody, toggle.checked);
+  });
+}
 
-  buildCheckboxes(dictContainer, getVisibleSources(dialect), enabled);
-  buildDialectDropdown(dialectSelect, dialect);
-  if (posLang === 'ar') posLangAr.checked = true;
-  else posLangEn.checked = true;
-
+function wireDictControls(
+  dictContainer: HTMLElement, dialectSelect: HTMLSelectElement,
+): void {
   dictContainer.addEventListener('change', () => setEnabledDicts(collectEnabledDicts(dictContainer)));
-
   dialectSelect.addEventListener('change', () => {
     const value = dialectSelect.value as Dialect | '';
     const newDialect = value || null;
@@ -73,9 +82,33 @@ async function setup() {
     buildCheckboxes(dictContainer, visible, newEnabled);
     setEnabledDicts(collectEnabledDicts(dictContainer));
   });
+}
 
-  posLangEn.addEventListener('change', () => { if (posLangEn.checked) setPosLanguage('en'); });
-  posLangAr.addEventListener('change', () => { if (posLangAr.checked) setPosLanguage('ar'); });
+function wirePosLang(en: HTMLInputElement, ar: HTMLInputElement): void {
+  en.addEventListener('change', () => { if (en.checked) setPosLanguage('en'); });
+  ar.addEventListener('change', () => { if (ar.checked) setPosLanguage('ar'); });
+}
+
+async function setup() {
+  const extensionToggle = document.getElementById('extension-enabled') as HTMLInputElement;
+  const settingsBody = document.getElementById('settings-body')!;
+  const dictContainer = document.getElementById('dict-checkboxes')!;
+  const dialectSelect = document.getElementById('dialect') as HTMLSelectElement;
+  const posLangEn = document.getElementById('posLangEn') as HTMLInputElement;
+  const posLangAr = document.getElementById('posLangAr') as HTMLInputElement;
+
+  const [extensionOn, dictSources, dialect, posLang] = await Promise.all([
+    getExtensionEnabled(), getEnabledDicts(), getDialect(), getPosLanguage(),
+  ]);
+
+  buildCheckboxes(dictContainer, getVisibleSources(dialect), dictSources);
+  buildDialectDropdown(dialectSelect, dialect);
+  if (posLang === 'ar') posLangAr.checked = true;
+  else posLangEn.checked = true;
+  applyExtensionUi(extensionToggle, settingsBody, extensionOn);
+  wireExtensionToggle(extensionToggle, settingsBody);
+  wireDictControls(dictContainer, dialectSelect);
+  wirePosLang(posLangEn, posLangAr);
 }
 
 setup();

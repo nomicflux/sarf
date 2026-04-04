@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage, DIALECT_SOURCES, DICT_LABELS, DIALECT_LABELS, DIALECT_DICTS } from '../dict-prefs';
+import {
+  getEnabledDicts, setEnabledDicts, getDialect, setDialect, getPosLanguage, setPosLanguage,
+  getExtensionEnabled, setExtensionEnabled,
+  DIALECT_SOURCES, DICT_LABELS, DIALECT_LABELS, DIALECT_DICTS,
+} from '../dict-prefs';
 
 function mockStorage(data: Record<string, unknown> = {}) {
   const store = { ...data };
@@ -35,6 +39,24 @@ describe('dict-prefs', () => {
     const mock = mockStorage();
     await setEnabledDicts(['wk']);
     expect(mock.set).toHaveBeenCalledWith({ enabledDicts: ['wk'] });
+  });
+
+  it('returns default extension enabled when storage is empty', async () => {
+    mockStorage();
+    const result = await getExtensionEnabled();
+    expect(result).toBe(true);
+  });
+
+  it('returns stored extension enabled when storage has data', async () => {
+    mockStorage({ extensionEnabled: false });
+    const result = await getExtensionEnabled();
+    expect(result).toBe(false);
+  });
+
+  it('writes extension enabled to storage', async () => {
+    const mock = mockStorage();
+    await setExtensionEnabled(false);
+    expect(mock.set).toHaveBeenCalledWith({ extensionEnabled: false });
   });
 
   it('returns default POS language when storage is empty', async () => {

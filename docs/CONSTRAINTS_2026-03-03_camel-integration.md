@@ -11,6 +11,13 @@
 - Phase completion gate is mandatory (tests, lint, commit, stop)
 - Subagent specification is binding
 
+## CRITICAL Constraint (2026-03-03)
+
+### Extension-only deployment — NO external services
+- User's exact words: "The end user CANNOT start this. It must be bundled AS AN EXTENSION. PERIOD. _ANY_ OTHER SOLUTION IS A NON STARTER."
+- Category: HARD ARCHITECTURAL CONSTRAINT
+- Impact: The entire Python backend approach (Phase 1) is architecturally invalid. CAMeL morphological analysis must run inside the extension itself — no separate server, no Python, no manual setup.
+
 ## User Corrections (2026-03-03)
 
 ### BANNED: Ad-hoc script execution

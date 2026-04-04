@@ -5,6 +5,8 @@ const STORAGE_KEY = 'enabledDicts';
 const DEFAULT_SOURCES: DictSource[] = ['hw', 'wk'];
 const POS_LANG_KEY = 'posLanguage';
 const DEFAULT_POS_LANG: PosLanguage = 'en';
+export const EXTENSION_ENABLED_STORAGE_KEY = 'extensionEnabled';
+const DEFAULT_EXTENSION_ENABLED = true;
 
 export type Dialect = 'egy' | 'lev' | 'gulf';
 
@@ -37,6 +39,17 @@ export async function getEnabledDicts(): Promise<DictSource[]> {
 
 export async function setEnabledDicts(sources: DictSource[]): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEY]: sources });
+}
+
+export async function getExtensionEnabled(): Promise<boolean> {
+  const result = await chrome.storage.local.get(EXTENSION_ENABLED_STORAGE_KEY);
+  const value = result[EXTENSION_ENABLED_STORAGE_KEY];
+  if (typeof value === 'boolean') return value;
+  return DEFAULT_EXTENSION_ENABLED;
+}
+
+export async function setExtensionEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [EXTENSION_ENABLED_STORAGE_KEY]: enabled });
 }
 
 export async function getPosLanguage(): Promise<PosLanguage> {

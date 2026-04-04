@@ -9,17 +9,22 @@
       h4 { margin: 12px 0 8px; font-size: 13px; color: #555; }
       label { display: block; margin-bottom: 8px; cursor: pointer; }
       select { width: 100%; padding: 4px; margin-bottom: 8px; }
+      .settings-body--disabled { opacity: 0.55; }
     </style>
   </head>
   <body>
     <h3>Sarf — Settings</h3>
-    <h4>Dictionaries</h4>
-    <div id="dict-checkboxes"></div>
-    <h4>Dialect</h4>
-    <select id="dialect"></select>
-    <h4>Part of Speech Language</h4>
-    <label><input type="radio" name="posLang" id="posLangEn" value="en" /> English</label>
-    <label><input type="radio" name="posLang" id="posLangAr" value="ar" /> العربية</label>
+    <h4>Enabled</h4>
+    <label><input type="checkbox" id="extension-enabled" /> Sarf is enabled</label>
+    <div id="settings-body">
+      <h4>Dictionaries</h4>
+      <div id="dict-checkboxes"></div>
+      <h4>Dialect</h4>
+      <select id="dialect"></select>
+      <h4>Part of Speech Language</h4>
+      <label><input type="radio" name="posLang" id="posLangEn" value="en" /> English</label>
+      <label><input type="radio" name="posLang" id="posLangAr" value="ar" /> العربية</label>
+    </div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

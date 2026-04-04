@@ -7,8 +7,9 @@ import {
 } from '../lib/tooltip';
 import { getTextAtPoint } from '../lib/hit-test';
 import { debounce } from '../lib/debounce';
-import { getPosLanguage, type PosLanguage } from '../lib/dict-prefs';
-import type { MorphAnalysis } from '../lib/types';
+import {
+  getPosLanguage, getExtensionEnabled, EXTENSION_ENABLED_STORAGE_KEY, type PosLanguage,
+} from '../lib/dict-prefs';
 import type { StreamMessage, AnalyzePortMessage } from '../lib/stream-types';
 
 export default defineContentScript({
@@ -18,12 +19,34 @@ export default defineContentScript({
     let lastWord: string | null = null;
     let currentPort: chrome.runtime.Port | null = null;
     let posLang: PosLanguage = 'en';
+    let extensionOn = true;
+
+    function disconnectPort(): void {
+      if (currentPort) {
+        currentPort.disconnect();
+        currentPort = null;
+      }
+    }
+
+    function stopExtensionUi(): void {
+      disconnectPort();
+      lastWord = null;
+      unpinTooltip(tooltip);
+    }
+
     getPosLanguage().then(lang => { posLang = lang; });
+    getExtensionEnabled().then(v => { extensionOn = v; });
+
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes['posLanguage']) posLang = changes['posLanguage'].newValue as PosLanguage;
+      if (changes.posLanguage) posLang = changes.posLanguage.newValue as PosLanguage;
+      if (!changes[EXTENSION_ENABLED_STORAGE_KEY]) return;
+      const nv = changes[EXTENSION_ENABLED_STORAGE_KEY].newValue;
+      extensionOn = typeof nv === 'boolean' ? nv : true;
+      if (!extensionOn) stopExtensionUi();
     });
 
     const onMouseMove = debounce((event: MouseEvent) => {
+      if (!extensionOn) return unpinTooltip(tooltip);
       if (isPinned(tooltip)) return;
       const result = getTextAtPoint(event.clientX, event.clientY);
       if (!result) return hideTooltip(tooltip);
@@ -37,14 +60,8 @@ export default defineContentScript({
       analyzeAndShow(word, event.clientX, event.clientY);
     }, 100);
 
-    function disconnectPort(): void {
-      if (currentPort) {
-        currentPort.disconnect();
-        currentPort = null;
-      }
-    }
-
     function analyzeAndShow(word: string, x: number, y: number): void {
+      if (!extensionOn) return;
       disconnectPort();
       showLoadingTooltip(tooltip, x, y);
       const port = chrome.runtime.connect({ name: 'sarf' });
@@ -76,6 +93,7 @@ export default defineContentScript({
     }
 
     function onClick(event: MouseEvent): void {
+      if (!extensionOn) return;
       if (isPinned(tooltip)) {
         if (!tooltip.contains(event.target as Node)) {
           unpinTooltip(tooltip);
